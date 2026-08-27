@@ -6,6 +6,8 @@ import { swaggerSpec } from './shared/infrastructure/swagger/swagger.config.js';
 import { errorHandler } from './shared/presentation/middlewares/error-handler.middleware.js';
 import catalogRouter from './modules/catalog/presentation/catalog.routes.js';
 import authRouter from './modules/identity/presentation/auth.routes.js';
+import newsRouter from './modules/news/presentation/news.routes.js';
+import pricingRouter from './modules/pricing/presentation/pricing.routes.js';
 
 export const createApp = (): Application => {
   const app = express();
@@ -33,6 +35,8 @@ export const createApp = (): Application => {
   // Module Routes
   app.use('/api/v1/catalog', catalogRouter);
   app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/news', newsRouter);
+  app.use('/api/v1/pricing', pricingRouter);
 
   // Global Error Handler
   app.use(errorHandler);
