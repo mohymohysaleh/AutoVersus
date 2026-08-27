@@ -1,0 +1,438 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// 1. IDENTITY, ROLES & USERS
+// -----------------------------------------------------------------------------
+
+enum Role {
+  USER
+  NEWS_EDITOR
+  CONTENT_DATA_EDITOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Language {
+  EN
+  AR
+}
+
+enum MeasurementSystem {
+  METRIC    // km, L/100km, kW/HP, Nm
+  IMPERIAL  // miles, MPG, HP, lb-ft
+}
+
+model User {
+  id                String            @id @default(uuid())
+  email             String            @unique
+  passwordHash      String
+  name              String?
+  avatarUrl         String?
+  role              Role              @default(USER)
+  country           String            @default("EG")
+  preferredCurrency String            @default("EGP")
+  preferredLang     Language          @default(EN)
+  measurementSystem MeasurementSystem @default(METRIC)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  favorites         UserFavorite[]
+  savedComparisons  SavedComparison[]
+  priceAlerts       PriceAlert[]
+  articles          NewsArticle[]     @relation("ArticleAuthor")
+  verifiedSources   DataSource[]      @relation("UserVerifiedSources")
+
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// 2. AUTOMOTIVE HIERARCHY
+// -----------------------------------------------------------------------------
+
+enum VehicleBodyType {
+  SEDAN
+  SUV
+  CROSSOVER
+  HATCHBACK
+  COUPE
+  CONVERTIBLE
+  WAGON
+  PICKUP
+  VAN
+  MPV
+  EV
+}
+
+model Brand {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  country     String
+  logoUrl     String?
+  foundedYear Int?
+  websiteUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  models      CarModel[]
+
+  @@map("brands")
+}
+
+model CarModel {
+  id          String          @id @default(uuid())
+  brandId     String
+  name        String
+  slug        String
+  bodyType    VehicleBodyType
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  brand       Brand           @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  generations Generation[]
+
+  @@unique([brandId, slug])
+  @@map("car_models")
+}
+
+model Generation {
+  id           String      @id @default(uuid())
+  modelId      String
+  name         String      // e.g. "E210 (12th Gen)"
+  internalCode String?     // e.g. "E210"
+  startYear    Int
+  endYear      Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  model        CarModel    @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  modelYears   ModelYear[]
+
+  @@map("generations")
+}
+
+model ModelYear {
+  id             String          @id @default(uuid())
+  generationId   String
+  year           Int             // e.g. 2026
+  isFacelift     Boolean         @default(false)
+  changesSummary String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  generation     Generation      @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  marketVariants MarketVariant[]
+
+  @@unique([generationId, year])
+  @@map("model_years")
+}
+
+// -----------------------------------------------------------------------------
+// 3. MARKET VARIANTS & SPECIFICATIONS
+// -----------------------------------------------------------------------------
+
+enum MarketCode {
+  EG  // Egypt
+  SA  // Saudi Arabia
+  AE  // UAE
+  GLOBAL
+}
+
+model MarketVariant {
+  id                 String   @id @default(uuid())
+  modelYearId        String
+  market             MarketCode @default(EG)
+  trimName           String   // e.g. "Comfort", "Smart", "Luxury"
+  slug               String
+  startingPriceEGP   Decimal? @db.Decimal(12, 2)
+  completenessScore  Int      @default(0) // 0-100%
+  isPublished        Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  modelYear          ModelYear           @relation(fields: [modelYearId], references: [id], onDelete: Cascade)
+  engine             EngineSpec?
+  dimensions         DimensionSpec?
+  performance        PerformanceSpec?
+  fuelEconomy        FuelEconomySpec?
+  safety             SafetySpec?
+  features           FeaturesEquipment?
+  prices             VariantPrice[]
+  sources            DataSource[]
+  conflicts          DataConflict[]
+  favoritedBy        UserFavorite[]
+
+  @@unique([modelYearId, market, slug])
+  @@map("market_variants")
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  PLUG_IN_HYBRID
+  ELECTRIC
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+  CVT
+  DCT
+  SINGLE_SPEED_EV
+}
+
+enum Drivetrain {
+  FWD
+  RWD
+  AWD
+  FOUR_WD
+}
+
+// Rule 7: Normalized Canonical Units (Power: kW, Torque: Nm, Volume: Liters, Length: mm)
+model EngineSpec {
+  id                 String           @id @default(uuid())
+  variantId          String           @unique
+  engineCode         String?
+  fuelType           FuelType
+  displacementCc     Int?             // cc
+  cylinders          Int?
+  aspiration         String?          // Naturally Aspirated, Turbocharged, Supercharged
+  powerKw            Decimal          @db.Decimal(7, 2) // Canonical kW
+  powerHp            Int              // Display conversion
+  torqueNm           Decimal          @db.Decimal(7, 2)
+  transmission       TransmissionType
+  gearsCount         Int?
+  drivetrain         Drivetrain       @default(FWD)
+  batteryCapacityKwh Decimal?         @db.Decimal(6, 2) // For EVs / PHEVs
+  electricRangeKm    Int?
+
+  variant            MarketVariant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("engine_specs")
+}
+
+model DimensionSpec {
+  id                String        @id @default(uuid())
+  variantId         String        @unique
+  lengthMm          Int
+  widthMm           Int
+  heightMm          Int
+  wheelbaseMm       Int
+  groundClearanceMm Int?
+  cargoCapacityL    Int           // Cargo/Trunk volume in Liters
+  fuelTankCapacityL Int?
+  seatingCapacity   Int           @default(5)
+  curbWeightKg      Int?
+
+  variant           MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("dimension_specs")
+}
+
+model PerformanceSpec {
+  id                String        @id @default(uuid())
+  variantId         String        @unique
+  zeroToHundredKmh  Decimal?      @db.Decimal(4, 2) // 0-100 km/h seconds
+  topSpeedKmh       Int?
+  brakingDistanceM  Decimal?      @db.Decimal(4, 2)
+
+  variant           MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("performance_specs")
+}
+
+enum FuelReadingSource {
+  OFFICIAL_CYCLE
+  ESTIMATED
+  OWNER_REPORTED
+}
+
+model FuelEconomySpec {
+  id            String            @id @default(uuid())
+  variantId     String            @unique
+  cityL100km    Decimal?          @db.Decimal(4, 2)
+  highwayL100km Decimal?          @db.Decimal(4, 2)
+  combinedL100km Decimal          @db.Decimal(4, 2)
+  sourceType    FuelReadingSource @default(OFFICIAL_CYCLE)
+
+  variant       MarketVariant     @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("fuel_economy_specs")
+}
+
+model SafetySpec {
+  id                 String        @id @default(uuid())
+  variantId          String        @unique
+  airbagsCount       Int           @default(2)
+  hasAbs             Boolean       @default(true)
+  hasEsc             Boolean       @default(true)
+  hasBlindSpot       Boolean       @default(false)
+  hasLaneKeepAssist  Boolean       @default(false)
+  hasAdaptiveCruise  Boolean       @default(false)
+  hasAeb             Boolean       @default(false) // Auto Emergency Braking
+  parkingSensors     String?       // "None", "Rear", "Front & Rear", "360 Camera"
+  euroNcapStars      Int?
+
+  variant            MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("safety_specs")
+}
+
+model FeaturesEquipment {
+  id                  String        @id @default(uuid())
+  variantId           String        @unique
+  touchscreenInches   Decimal?      @db.Decimal(3, 1)
+  hasAppleCarPlay     Boolean       @default(false)
+  hasAndroidAuto      Boolean       @default(false)
+  hasWirelessCharging Boolean       @default(false)
+  hasSunroof          Boolean       @default(false)
+  hasPanoramicRoof    Boolean       @default(false)
+  climateControlZones Int           @default(1)
+  seatMaterial        String?       // "Fabric", "Leather", "Alcantara"
+  hasVentilatedSeats  Boolean       @default(false)
+
+  variant             MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("features_equipment")
+}
+
+// -----------------------------------------------------------------------------
+// 4. PRICING & MARKET INTELLIGENCE
+// -----------------------------------------------------------------------------
+
+enum PriceType {
+  OFFICIAL_MSRP
+  DEALER_OVERPRICE
+  MARKET_AVERAGE
+  PROMOTIONAL
+}
+
+model VariantPrice {
+  id         String     @id @default(uuid())
+  variantId  String
+  price      Decimal    @db.Decimal(12, 2)
+  currency   String     @default("EGP")
+  priceType  PriceType  @default(OFFICIAL_MSRP)
+  recordedAt DateTime   @default(now())
+  sourceName String?
+
+  variant    MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId, recordedAt])
+  @@map("variant_prices")
+}
+
+// -----------------------------------------------------------------------------
+// 5. DATA GOVERNANCE & CONFLICT DETECTION (Rules 1, 3, 4, 54, 55)
+// -----------------------------------------------------------------------------
+
+model DataSource {
+  id              String         @id @default(uuid())
+  variantId       String
+  sourceName      String         // e.g. "Official Egyptian Dealership Brochure"
+  sourceUrl       String?
+  confidenceScore Int            @default(90) // 1-100
+  verifiedById    String?
+  createdAt       DateTime       @default(now())
+
+  variant         MarketVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  verifiedBy      User?          @relation("UserVerifiedSources", fields: [verifiedById], references: [id])
+
+  @@map("data_sources")
+}
+
+model DataConflict {
+  id            String        @id @default(uuid())
+  variantId     String
+  fieldName     String        // e.g. "horsepower", "torque"
+  existingValue String
+  conflictvValue String
+  source        String
+  isResolved    Boolean       @default(false)
+  resolvedValue String?
+  createdAt     DateTime      @default(now())
+
+  variant       MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("data_conflicts")
+}
+
+// -----------------------------------------------------------------------------
+// 6. NEWS & EDITORIAL
+// -----------------------------------------------------------------------------
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model NewsArticle {
+  id          String        @id @default(uuid())
+  title       String
+  slug        String        @unique
+  summary     String
+  contentHtml String        @db.Text
+  coverImage  String?
+  authorId    String
+  category    String        // "Local", "Prices", "New Cars", "EVs"
+  status      ArticleStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  author      User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  @@map("news_articles")
+}
+
+// -----------------------------------------------------------------------------
+// 7. USER FAVORITES, COMPARISONS & ALERTS
+// -----------------------------------------------------------------------------
+
+model UserFavorite {
+  id        String        @id @default(uuid())
+  userId    String
+  variantId String
+  createdAt DateTime      @default(now())
+
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant   MarketVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, variantId])
+  @@map("user_favorites")
+}
+
+model SavedComparison {
+  id         String   @id @default(uuid())
+  userId     String
+  title      String   // e.g. "Corolla 2026 vs Elantra 2026"
+  variantIds String[] // Array of variant UUIDs
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_comparisons")
+}
+
+model PriceAlert {
+  id             String   @id @default(uuid())
+  userId         String
+  variantId      String
+  targetPriceEGP Decimal  @db.Decimal(12, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("price_alerts")
+}

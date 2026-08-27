@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build & generated
+dist/
+/generated/prisma
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# IDEs & AI Agent folders
+.claude/
+.windsurf/
+.agents/
+.vscode/
+.idea/
+
+# logs & TS cache
+*.log
+*.tsbuildinfo
+
