@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // -----------------------------------------------------------------------------
@@ -354,7 +355,7 @@ model DataConflict {
   variantId     String
   fieldName     String        // e.g. "horsepower", "torque"
   existingValue String
-  conflictvValue String
+  conflictValue String
   source        String
   isResolved    Boolean       @default(false)
   resolvedValue String?
