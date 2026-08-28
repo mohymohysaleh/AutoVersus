@@ -1,31 +1,73 @@
-import { StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, ScrollView, View, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { Header } from '../../src/features/home/components/Header';
+import { SearchBar } from '../../src/features/home/components/SearchBar';
+import { CategoryChips } from '../../src/features/home/components/CategoryChips';
+import { FindMyCarBanner } from '../../src/features/home/components/FindMyCarBanner';
+import { TrendingCarsList, TrendingCarItem } from '../../src/features/home/components/TrendingCarsList';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function HomeScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentLang, setCurrentLang] = useState<'EN' | 'AR'>('EN');
 
-export default function TabOneScreen() {
+  const handleLanguageToggle = () => {
+    setCurrentLang((prev) => (prev === 'EN' ? 'AR' : 'EN'));
+  };
+
+  const handleCarPress = (car: TrendingCarItem) => {
+    console.log('Selected car:', car.name);
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Top Fixed Header */}
+      <Header
+        currentLang={currentLang}
+        onLanguageToggle={handleLanguageToggle}
+        onNotificationPress={() => console.log('Notification pressed')}
+      />
+
+      {/* Main Scrollable Body */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Search & Filter Bar */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onFilterPress={() => console.log('Filter pressed')}
+        />
+
+        {/* Category Horizontal Chips */}
+        <CategoryChips
+          onSelectCategory={(cat) => console.log('Selected category:', cat)}
+        />
+
+        {/* AI "Find My Car" Banner */}
+        <FindMyCarBanner
+          onQuizPress={() => console.log('Take Quiz pressed')}
+        />
+
+        {/* Popular Now: Trending Cars Horizontal List */}
+        <TrendingCarsList
+          onSeeAllPress={() => console.log('See All pressed')}
+          onCarPress={handleCarPress}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  scrollContent: {
+    paddingBottom: 24,
   },
 });
