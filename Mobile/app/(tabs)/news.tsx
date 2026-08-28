@@ -1,24 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { NewsScreen } from '../../src/features/news/screens/NewsScreen';
 
-export default function NewsScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Automotive News & Price Trends</Text>
-    </SafeAreaView>
-  );
+export default function NewsTab() {
+  return <NewsScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-});

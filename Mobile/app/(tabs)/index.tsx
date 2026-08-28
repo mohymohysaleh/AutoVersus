@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, View, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { router } from 'expo-router';
 import { Header } from '../../src/features/home/components/Header';
 import { SearchBar } from '../../src/features/home/components/SearchBar';
 import { CategoryChips } from '../../src/features/home/components/CategoryChips';
@@ -48,7 +49,7 @@ export default function HomeScreen() {
 
         {/* AI "Find My Car" Banner */}
         <FindMyCarBanner
-          onQuizPress={() => console.log('Take Quiz pressed')}
+          onQuizPress={() => router.push('/quiz')}
         />
 
         {/* Popular Now: Trending Cars Horizontal List */}
