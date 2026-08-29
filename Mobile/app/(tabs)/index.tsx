@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, View, Text, TouchableOpacity, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Header } from '../../src/features/home/components/Header';
 import { SearchBar } from '../../src/features/home/components/SearchBar';
 import { CategoryChips } from '../../src/features/home/components/CategoryChips';
 import { FindMyCarBanner } from '../../src/features/home/components/FindMyCarBanner';
 import { TrendingCarsList, TrendingCarItem } from '../../src/features/home/components/TrendingCarsList';
+import { LatestNewsList, NewsArticleCardItem } from '../../src/features/home/components/LatestNewsList';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +20,13 @@ export default function HomeScreen() {
     router.push({
       pathname: '/car/[slug]',
       params: { slug: car.slug },
+    });
+  };
+
+  const handleArticlePress = (article: NewsArticleCardItem) => {
+    router.push({
+      pathname: '/news/[slug]',
+      params: { slug: article.slug },
     });
   };
 
@@ -55,29 +63,16 @@ export default function HomeScreen() {
           onQuizPress={() => router.push('/quiz')}
         />
 
-        {/* Quick Launch Card for Onboarding & Auth */}
-        <View style={styles.quickLaunchBanner}>
-          <TouchableOpacity
-            style={styles.quickLaunchBtnNavy}
-            onPress={() => router.push('/onboarding')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.quickLaunchBtnText}>📱 6-Step Onboarding Tour</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickLaunchBtnRed}
-            onPress={() => router.push('/auth')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.quickLaunchBtnText}>🔑 Sign In / Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Popular Now: Trending Cars Horizontal List */}
         <TrendingCarsList
           onSeeAllPress={() => router.push('/(tabs)/search')}
           onCarPress={handleCarPress}
+        />
+
+        {/* Automotive News: Latest Insights Horizontal List */}
+        <LatestNewsList
+          onSeeAllPress={() => router.push('/(tabs)/news')}
+          onArticlePress={handleArticlePress}
         />
       </ScrollView>
     </SafeAreaView>
@@ -92,44 +87,5 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 24,
-  },
-  quickLaunchBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    gap: 12,
-  },
-  quickLaunchBtnNavy: {
-    flex: 1,
-    backgroundColor: '#0F2942',
-    paddingVertical: 14,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickLaunchBtnRed: {
-    flex: 1,
-    backgroundColor: '#C92A2A',
-    paddingVertical: 14,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickLaunchBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
   },
 });

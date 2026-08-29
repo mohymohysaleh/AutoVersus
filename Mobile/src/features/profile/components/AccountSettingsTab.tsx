@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 type ActiveModal = 'profile' | 'email' | 'market' | 'currency' | 'language' | 'measurement' | 'security' | 'logout' | null;
 
@@ -106,7 +107,7 @@ export const AccountSettingsTab: React.FC = () => {
 
   const handleLogout = () => {
     setActiveModal(null);
-    Alert.alert('Signed Out', 'You have been successfully signed out of AutoVersus.');
+    useAuthStore.getState().logout();
   };
 
   return (

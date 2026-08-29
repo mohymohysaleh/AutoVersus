@@ -30,6 +30,27 @@ export class AuthController {
         });
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Please provide a valid email address format.',
+            statusCode: 400,
+          },
+        });
+      }
+
+      if (password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Password must be at least 8 characters long.',
+            statusCode: 400,
+          },
+        });
+      }
+
       const result = await this.registerUseCase.execute({
         email,
         password,

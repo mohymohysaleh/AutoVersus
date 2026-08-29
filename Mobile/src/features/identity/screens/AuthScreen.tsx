@@ -10,16 +10,25 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useAuthStore } from '../store/auth.store';
+import {
+  validateRegistrationForm,
+  validateLoginForm,
+} from '../utils/auth.validation';
+import { AuthValidationErrors } from '../types/auth.types';
 
 export const AuthScreen: React.FC = () => {
   const params = useLocalSearchParams<{ mode?: string }>();
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(
     params.mode === 'signup' ? 'signup' : 'signin'
   );
+
+  // Store
+  const { login, register, isLoading, error: apiError, clearError } = useAuthStore();
 
   // Form Inputs
   const [fullName, setFullName] = useState('');
@@ -28,40 +37,57 @@ export const AuthScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // UI Toggles
+  // UI & Validation Toggles
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(true);
+  const [validationErrors, setValidationErrors] = useState<AuthValidationErrors>({});
 
-  const handleSignInSubmit = () => {
-    if (!email || !password) {
-      Alert.alert('Missing Fields', 'Please fill in both email and password.');
-      return;
-    }
-    Alert.alert('Welcome Back!', `Signed in as ${email}`);
-    router.replace('/');
+  const handleTabChange = (tab: 'signin' | 'signup') => {
+    setActiveTab(tab);
+    setValidationErrors({});
+    clearError();
   };
 
-  const handleSignUpSubmit = () => {
-    if (!fullName || !email || !password) {
-      Alert.alert('Missing Fields', 'Please fill in your name, email, and password.');
-      return;
+  const handleSignInSubmit = async () => {
+    clearError();
+    const { isValid, errors } = validateLoginForm({ email, password });
+    setValidationErrors(errors);
+
+    if (!isValid) return;
+
+    try {
+      await login({ email: email.trim(), password });
+      router.replace('/');
+    } catch (err) {
+      // API error handled by store state
     }
-    if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
-      return;
-    }
-    if (!agreeTerms) {
-      Alert.alert('Terms Required', 'Please accept the Terms of Service to continue.');
-      return;
-    }
-    Alert.alert('Account Created 🎉', `Welcome to AutoVersus, ${fullName}!`);
-    router.replace('/');
   };
 
-  const handleGoogleAuth = () => {
-    Alert.alert('Google Sign-In', 'Connected with Google Account.');
-    router.replace('/');
+  const handleSignUpSubmit = async () => {
+    clearError();
+    const dto = {
+      email: email.trim(),
+      password,
+      name: fullName.trim(),
+      phone: phone.trim(),
+      country: 'EG',
+      preferredCurrency: 'EGP',
+      preferredLang: 'EN' as const,
+      measurementSystem: 'METRIC' as const,
+    };
+
+    const { isValid, errors } = validateRegistrationForm(dto, confirmPassword, agreeTerms);
+    setValidationErrors(errors);
+
+    if (!isValid) return;
+
+    try {
+      await register(dto);
+      router.replace('/');
+    } catch (err) {
+      // API error handled by store state
+    }
   };
 
   const handleClose = () => {
@@ -110,13 +136,21 @@ export const AuthScreen: React.FC = () => {
           </Text>
         </View>
 
+        {/* Global API Error Alert Banner */}
+        {apiError && (
+          <View nativeID="auth-api-error-banner" testID="auth-api-error-banner" style={styles.apiErrorBanner}>
+            <Ionicons name="alert-circle-outline" size={18} color="#DC2626" />
+            <Text style={styles.apiErrorText}>{apiError}</Text>
+          </View>
+        )}
+
         {/* Tab Switcher Bar */}
         <View nativeID="auth-tab-bar" testID="auth-tab-bar" style={styles.tabBar}>
           <TouchableOpacity
             testID="auth-tab-signin"
             accessibilityLabel="Switch to Sign In"
             style={[styles.tabButton, activeTab === 'signin' && styles.tabButtonActive]}
-            onPress={() => setActiveTab('signin')}
+            onPress={() => handleTabChange('signin')}
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'signin' && styles.tabTextActive]}>
@@ -128,7 +162,7 @@ export const AuthScreen: React.FC = () => {
             testID="auth-tab-signup"
             accessibilityLabel="Switch to Sign Up"
             style={[styles.tabButton, activeTab === 'signup' && styles.tabButtonActive]}
-            onPress={() => setActiveTab('signup')}
+            onPress={() => handleTabChange('signup')}
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'signup' && styles.tabTextActive]}>
@@ -143,7 +177,7 @@ export const AuthScreen: React.FC = () => {
             {/* Email Address */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email Address</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.email && styles.inputWrapperError]}>
                 <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signin-email-input"
@@ -153,17 +187,21 @@ export const AuthScreen: React.FC = () => {
                   placeholder="name@domain.com"
                   placeholderTextColor="#9CA3AF"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(val) => {
+                    setEmail(val);
+                    if (validationErrors.email) setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
+              {validationErrors.email && <Text style={styles.fieldErrorText}>{validationErrors.email}</Text>}
             </View>
 
             {/* Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.password && styles.inputWrapperError]}>
                 <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signin-password-input"
@@ -174,7 +212,10 @@ export const AuthScreen: React.FC = () => {
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(val) => {
+                    setPassword(val);
+                    if (validationErrors.password) setValidationErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
                 />
                 <TouchableOpacity
                   testID="auth-signin-password-toggle"
@@ -184,6 +225,7 @@ export const AuthScreen: React.FC = () => {
                   <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
+              {validationErrors.password && <Text style={styles.fieldErrorText}>{validationErrors.password}</Text>}
             </View>
 
             {/* Remember Me & Forgot Password Row */}
@@ -211,28 +253,33 @@ export const AuthScreen: React.FC = () => {
               accessibilityLabel="Submit Sign In"
               style={styles.primaryButtonNavy}
               onPress={handleSignInSubmit}
+              disabled={isLoading}
               activeOpacity={0.85}
             >
-              <Text style={styles.primaryButtonText}>Sign In</Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Sign In</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+              <Text style={styles.dividerText}>OR CONTINUE WITH GUEST ACCESS</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Continue with Google */}
+            {/* Continue as Guest */}
             <TouchableOpacity
-              testID="auth-google-signin-button"
-              accessibilityLabel="Continue with Google"
+              testID="auth-guest-button"
+              accessibilityLabel="Explore as Guest"
               style={styles.googleButton}
-              onPress={handleGoogleAuth}
+              onPress={handleClose}
               activeOpacity={0.85}
             >
-              <Ionicons name="logo-google" size={20} color="#4285F4" style={{ marginRight: 10 }} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Ionicons name="compass-outline" size={20} color="#0F2942" style={{ marginRight: 8 }} />
+              <Text style={styles.googleButtonText}>Explore Catalog as Guest</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -243,7 +290,7 @@ export const AuthScreen: React.FC = () => {
             {/* Full Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Full Name</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.fullName && styles.inputWrapperError]}>
                 <Ionicons name="person-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signup-fullname-input"
@@ -253,15 +300,19 @@ export const AuthScreen: React.FC = () => {
                   placeholder="e.g. Ahmed Hassan"
                   placeholderTextColor="#9CA3AF"
                   value={fullName}
-                  onChangeText={setFullName}
+                  onChangeText={(val) => {
+                    setFullName(val);
+                    if (validationErrors.fullName) setValidationErrors((prev) => ({ ...prev, fullName: undefined }));
+                  }}
                 />
               </View>
+              {validationErrors.fullName && <Text style={styles.fieldErrorText}>{validationErrors.fullName}</Text>}
             </View>
 
             {/* Email Address */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email Address</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.email && styles.inputWrapperError]}>
                 <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signup-email-input"
@@ -271,17 +322,21 @@ export const AuthScreen: React.FC = () => {
                   placeholder="name@domain.com"
                   placeholderTextColor="#9CA3AF"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(val) => {
+                    setEmail(val);
+                    if (validationErrors.email) setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
+              {validationErrors.email && <Text style={styles.fieldErrorText}>{validationErrors.email}</Text>}
             </View>
 
             {/* Mobile Phone */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Mobile Phone</Text>
-              <View style={styles.phoneWrapper}>
+              <Text style={styles.inputLabel}>Mobile Phone (Optional)</Text>
+              <View style={[styles.phoneWrapper, validationErrors.phone && styles.inputWrapperError]}>
                 <View style={styles.countryCodeBadge}>
                   <Text style={styles.countryCodeText}>🇪🇬 +20</Text>
                 </View>
@@ -293,27 +348,34 @@ export const AuthScreen: React.FC = () => {
                   placeholder="100 123 4567"
                   placeholderTextColor="#9CA3AF"
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={(val) => {
+                    setPhone(val);
+                    if (validationErrors.phone) setValidationErrors((prev) => ({ ...prev, phone: undefined }));
+                  }}
                   keyboardType="phone-pad"
                 />
               </View>
+              {validationErrors.phone && <Text style={styles.fieldErrorText}>{validationErrors.phone}</Text>}
             </View>
 
             {/* Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.password && styles.inputWrapperError]}>
                 <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signup-password-input"
                   testID="auth-signup-password-input"
                   accessibilityLabel="Password"
                   style={styles.textInput}
-                  placeholder="At least 8 characters"
+                  placeholder="At least 8 characters (letters & numbers)"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(val) => {
+                    setPassword(val);
+                    if (validationErrors.password) setValidationErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
                 />
                 <TouchableOpacity
                   testID="auth-signup-password-toggle"
@@ -323,12 +385,13 @@ export const AuthScreen: React.FC = () => {
                   <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
+              {validationErrors.password && <Text style={styles.fieldErrorText}>{validationErrors.password}</Text>}
             </View>
 
             {/* Confirm Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Confirm Password</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, validationErrors.confirmPassword && styles.inputWrapperError]}>
                 <Ionicons name="shield-checkmark-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
                   nativeID="auth-signup-confirmpassword-input"
@@ -339,16 +402,23 @@ export const AuthScreen: React.FC = () => {
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!showPassword}
                   value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  onChangeText={(val) => {
+                    setConfirmPassword(val);
+                    if (validationErrors.confirmPassword) setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                  }}
                 />
               </View>
+              {validationErrors.confirmPassword && <Text style={styles.fieldErrorText}>{validationErrors.confirmPassword}</Text>}
             </View>
 
             {/* Agree Terms Checkbox */}
             <TouchableOpacity
               testID="auth-terms-checkbox"
               style={styles.checkboxRow}
-              onPress={() => setAgreeTerms(!agreeTerms)}
+              onPress={() => {
+                setAgreeTerms(!agreeTerms);
+                if (validationErrors.terms) setValidationErrors((prev) => ({ ...prev, terms: undefined }));
+              }}
               activeOpacity={0.8}
             >
               <View style={[styles.checkbox, agreeTerms && styles.checkboxChecked]}>
@@ -359,6 +429,7 @@ export const AuthScreen: React.FC = () => {
                 <Text style={styles.termsHighlight}>Privacy Policy</Text>
               </Text>
             </TouchableOpacity>
+            {validationErrors.terms && <Text style={styles.fieldErrorText}>{validationErrors.terms}</Text>}
 
             {/* Create Account Red CTA */}
             <TouchableOpacity
@@ -366,28 +437,33 @@ export const AuthScreen: React.FC = () => {
               accessibilityLabel="Submit Create Account"
               style={styles.primaryButtonRed}
               onPress={handleSignUpSubmit}
+              disabled={isLoading}
               activeOpacity={0.85}
             >
-              <Text style={styles.primaryButtonText}>Create Account</Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Create Account</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+              <Text style={styles.dividerText}>OR CONTINUE WITH GUEST ACCESS</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Continue with Google */}
+            {/* Continue as Guest */}
             <TouchableOpacity
-              testID="auth-google-signup-button"
-              accessibilityLabel="Continue with Google"
+              testID="auth-guest-button"
+              accessibilityLabel="Explore as Guest"
               style={styles.googleButton}
-              onPress={handleGoogleAuth}
+              onPress={handleClose}
               activeOpacity={0.85}
             >
-              <Ionicons name="logo-google" size={20} color="#4285F4" style={{ marginRight: 10 }} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Ionicons name="compass-outline" size={20} color="#0F2942" style={{ marginRight: 8 }} />
+              <Text style={styles.googleButtonText}>Explore Catalog as Guest</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -427,7 +503,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   titleHeader: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   tagline: {
     fontSize: 11,
@@ -447,12 +523,30 @@ const styles = StyleSheet.create({
     color: '#64748B',
     lineHeight: 20,
   },
+  apiErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    marginBottom: 16,
+    gap: 8,
+  },
+  apiErrorText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#991B1B',
+    flex: 1,
+  },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#F8FAFC',
     borderRadius: 24,
     padding: 4,
-    marginBottom: 24,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
@@ -495,6 +589,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 50,
   },
+  inputWrapperError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
   phoneWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -524,6 +622,13 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: 4,
+  },
+  fieldErrorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#DC2626',
+    marginTop: 2,
+    marginLeft: 4,
   },
   optionsRow: {
     flexDirection: 'row',

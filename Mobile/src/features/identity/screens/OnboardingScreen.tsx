@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useAuthStore } from '../store/auth.store';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -28,7 +29,7 @@ interface SlideData {
   overlayOpacity?: number;
 }
 
-const SLIDES: SlideData[] = [
+const ALL_SLIDES: SlideData[] = [
   {
     id: '1',
     slideNumber: '01',
@@ -92,23 +93,31 @@ const SLIDES: SlideData[] = [
 ];
 
 export const OnboardingScreen: React.FC = () => {
+  const { isAuthenticated } = useAuthStore();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [currentLang, setCurrentLang] = useState<'EN' | 'AR'>('EN');
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // If signed in, show only 5 slides (omit 6th auth slide). If signed out, show all 6.
+  const activeSlides = isAuthenticated ? ALL_SLIDES.slice(0, 5) : ALL_SLIDES;
+  const maxSlideIndex = activeSlides.length - 1;
+
   const handleScroll = (event: any) => {
     const slide = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    if (slide !== activeSlideIndex) {
+    if (slide !== activeSlideIndex && slide >= 0 && slide <= maxSlideIndex) {
       setActiveSlideIndex(slide);
     }
   };
 
   const goToNextSlide = () => {
-    if (activeSlideIndex < 5) {
+    if (activeSlideIndex < maxSlideIndex) {
       scrollViewRef.current?.scrollTo({
         x: (activeSlideIndex + 1) * SCREEN_WIDTH,
         animated: true,
       });
+    } else if (isAuthenticated) {
+      // On 5th slide while signed in -> Back to Home
+      router.replace('/');
     }
   };
 
@@ -159,9 +168,9 @@ export const OnboardingScreen: React.FC = () => {
         scrollEventThrottle={16}
         style={styles.carouselContainer}
       >
-        {SLIDES.map((slide, index) => {
+        {activeSlides.map((slide, index) => {
           const isFirstSlide = index === 0;
-          const isFinalSlide = index === 5;
+          const isFinalSlide = index === maxSlideIndex && !isAuthenticated;
           const currentOverlayOpacity = slide.overlayOpacity || 0.45;
           const imageSourceProp = slide.imageSource ? slide.imageSource : { uri: slide.imageUri };
 
@@ -188,7 +197,8 @@ export const OnboardingScreen: React.FC = () => {
               <View nativeID={`onboarding-slide-${slide.id}-top-header`} style={styles.topHeaderOverlay}>
                 <View style={styles.logoRow} />
 
-                {activeSlideIndex < 5 && (
+                {/* Skip button visible on non-final slides */}
+                {activeSlideIndex < maxSlideIndex && (
                   <TouchableOpacity
                     testID="onboarding-skip-button"
                     accessibilityLabel="Skip Onboarding"
@@ -203,7 +213,7 @@ export const OnboardingScreen: React.FC = () => {
 
               {/* Slide Content Fill */}
               <View nativeID={`onboarding-slide-${slide.id}-content-fill`} style={styles.slideContentFill}>
-                {/* Slide 1 Hero Logo (2x Larger) */}
+                {/* Slide 1 Hero Logo */}
                 {isFirstSlide && (
                   <View nativeID="onboarding-slide1-hero-container" testID="onboarding-slide1-hero-container" style={styles.slide1HeroLogoContainer}>
                     <Image
@@ -216,7 +226,7 @@ export const OnboardingScreen: React.FC = () => {
                   </View>
                 )}
 
-                {/* Floating Direct Text Block (Directly on background photo) */}
+                {/* Floating Direct Text Block */}
                 {!isFinalSlide && (
                   <View nativeID={`onboarding-content-card-${slide.id}`} testID={`onboarding-content-card-${slide.id}`} style={styles.floatingTextBlock}>
                     <View style={styles.preHeaderRow}>
@@ -229,7 +239,7 @@ export const OnboardingScreen: React.FC = () => {
                   </View>
                 )}
 
-                {/* Final Slide 6 Authentication Stack */}
+                {/* Final Slide 6 Authentication Stack (Only shown when unauthenticated on slide 6) */}
                 {isFinalSlide && (
                   <View nativeID="onboarding-final-auth-container" testID="onboarding-final-auth-container" style={styles.finalAuthContainer}>
                     <View style={styles.finalTypographyBlock}>
@@ -294,12 +304,12 @@ export const OnboardingScreen: React.FC = () => {
         })}
       </ScrollView>
 
-      {/* Bottom Navigation Overlay Bar (Slides 1 to 5) */}
-      {activeSlideIndex < 5 && (
+      {/* Bottom Navigation Overlay Bar */}
+      {!(activeSlideIndex === 5 && !isAuthenticated) && (
         <View nativeID="onboarding-footer-navigation-bar" testID="onboarding-footer-navigation-bar" style={styles.footerBarOverlay}>
-          {/* Progress Dots (Left) */}
+          {/* Progress Dots */}
           <View nativeID="onboarding-progress-dots" testID="onboarding-progress-dots" style={styles.dotsRow}>
-            {[0, 1, 2, 3, 4, 5].map((index) => {
+            {activeSlides.map((_, index) => {
               const isActive = index === activeSlideIndex;
               return (
                 <View
@@ -329,15 +339,17 @@ export const OnboardingScreen: React.FC = () => {
               </TouchableOpacity>
             )}
 
-            {/* Rounded Red Next Button */}
+            {/* Next / Back to Home Button */}
             <TouchableOpacity
               testID="onboarding-next-slide-button"
-              accessibilityLabel="Next Slide"
+              accessibilityLabel={isAuthenticated && activeSlideIndex === 4 ? 'Back to Home' : 'Next Slide'}
               style={styles.redNextPillButton}
               onPress={goToNextSlide}
               activeOpacity={0.85}
             >
-              <Text style={styles.redNextPillText}>Next</Text>
+              <Text style={styles.redNextPillText}>
+                {isAuthenticated && activeSlideIndex === 4 ? 'Back to Home' : 'Next'}
+              </Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -345,7 +357,7 @@ export const OnboardingScreen: React.FC = () => {
       )}
 
       {/* Micro Bottom Subtitle */}
-      {activeSlideIndex < 5 && (
+      {!(activeSlideIndex === 5 && !isAuthenticated) && (
         <View nativeID="onboarding-micro-footer-text" style={styles.microBottomRow}>
           <Ionicons name="search-outline" size={11} color="rgba(255, 255, 255, 0.6)" />
           <Text style={styles.microBottomText}>Tap, swipe, discover</Text>
@@ -430,7 +442,7 @@ const styles = StyleSheet.create({
     height: 440,
   },
 
-  /* Floating Direct Text Block (No background box, directly on background photo) */
+  /* Floating Direct Text Block */
   floatingTextBlock: {
     backgroundColor: 'transparent',
     paddingHorizontal: 4,
@@ -547,7 +559,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  /* Bottom Navigation Overlay Bar (Slides 1 to 5) */
+  /* Bottom Navigation Overlay Bar */
   footerBarOverlay: {
     position: 'absolute',
     bottom: 26,
