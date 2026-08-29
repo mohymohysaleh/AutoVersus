@@ -19,58 +19,65 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 interface SlideData {
   id: string;
   slideNumber: string;
-  imageUri: string;
+  imageSource?: any;
+  imageUri?: string;
   preHeaderIcon: keyof typeof Ionicons.glyphMap;
   preHeaderText: string;
   headline: string;
   subtitle: string;
+  overlayOpacity?: number;
 }
 
 const SLIDES: SlideData[] = [
   {
     id: '1',
     slideNumber: '01',
-    imageUri: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=1200&q=80',
+    imageUri: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=1200&q=80',
     preHeaderIcon: 'car-outline',
     preHeaderText: 'THE CAR ENCYCLOPEDIA',
     headline: 'Every car has a story.',
     subtitle: 'Explore the details, history, and character behind every model ever made in Egypt & MENA.',
+    overlayOpacity: 0.20,
   },
   {
     id: '2',
     slideNumber: '02',
-    imageUri: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+    imageUri: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80',
     preHeaderIcon: 'flash-outline',
     preHeaderText: 'SPECIFICATION ENGINE',
     headline: 'Every spec verified. Zero guesswork.',
     subtitle: 'Browse verified factory data, horsepower, battery range, and official regional pricing.',
+    overlayOpacity: 0.45,
   },
   {
     id: '3',
     slideNumber: '03',
-    imageUri: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
+    imageSource: require('../../../../assets/images/carpriceslide.jpg'),
     preHeaderIcon: 'newspaper-outline',
     preHeaderText: 'MARKET PRICE WATCH',
     headline: 'Track prices as they move.',
     subtitle: 'Stay ahead of official agency MSRP changes, dealership overprices, and market shifts in real time.',
+    overlayOpacity: 0.35,
   },
   {
     id: '4',
     slideNumber: '04',
-    imageUri: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80',
+    imageSource: require('../../../../assets/images/compareslide.jpg'),
     preHeaderIcon: 'swap-horizontal-outline',
     preHeaderText: 'HEAD-TO-HEAD BATTLES',
     headline: 'Side-by-side clarity.',
     subtitle: 'Compare up to 5 cars instantly across dimensions, safety, performance, and winner metrics.',
+    overlayOpacity: 0.35,
   },
   {
     id: '5',
     slideNumber: '05',
-    imageUri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+    imageSource: require('../../../../assets/images/chooseslide.jpg'),
     preHeaderIcon: 'color-wand-outline',
     preHeaderText: 'AI LIFESTYLE MATCHING',
     headline: 'Which car fits your life?',
     subtitle: 'Answer 5 lifestyle questions to receive AI-backed car recommendations tailored for your commute.',
+    overlayOpacity: 0.35,
   },
   {
     id: '6',
@@ -80,6 +87,7 @@ const SLIDES: SlideData[] = [
     preHeaderText: 'START YOUR JOURNEY',
     headline: 'Ready to make the smart choice?',
     subtitle: 'Join thousands of Egyptian drivers making data-backed car buying decisions.',
+    overlayOpacity: 0.55,
   },
 ];
 
@@ -154,6 +162,8 @@ export const OnboardingScreen: React.FC = () => {
         {SLIDES.map((slide, index) => {
           const isFirstSlide = index === 0;
           const isFinalSlide = index === 5;
+          const currentOverlayOpacity = slide.overlayOpacity || 0.45;
+          const imageSourceProp = slide.imageSource ? slide.imageSource : { uri: slide.imageUri };
 
           return (
             <View
@@ -163,24 +173,20 @@ export const OnboardingScreen: React.FC = () => {
               style={styles.slideCard}
             >
               {/* Full-Bleed Background Photo taking over the whole screen */}
-              <Image source={{ uri: slide.imageUri }} style={styles.fullScreenBgImage} resizeMode="cover" />
+              <Image source={imageSourceProp} style={styles.fullScreenBgImage} resizeMode="cover" />
 
-              {/* Gradient Darkness Overlay for crisp text legibility */}
-              <View nativeID={`onboarding-slide-${slide.id}-gradient-overlay`} style={styles.fullScreenGradientOverlay} />
+              {/* Dynamic Gradient Darkness Overlay */}
+              <View
+                nativeID={`onboarding-slide-${slide.id}-gradient-overlay`}
+                style={[
+                  styles.fullScreenGradientOverlay,
+                  { backgroundColor: `rgba(5, 15, 25, ${currentOverlayOpacity})` },
+                ]}
+              />
 
               {/* Top Navigation Overlay Bar */}
               <View nativeID={`onboarding-slide-${slide.id}-top-header`} style={styles.topHeaderOverlay}>
-                <View style={styles.logoRow}>
-                  {!isFirstSlide && (
-                    <Image
-                      nativeID="onboarding-header-logo"
-                      testID="onboarding-header-logo"
-                      source={require('../../../../assets/images/avLogo-removebg-preview.png')}
-                      style={styles.brandLogoHeaderLarge}
-                      resizeMode="contain"
-                    />
-                  )}
-                </View>
+                <View style={styles.logoRow} />
 
                 {activeSlideIndex < 5 && (
                   <TouchableOpacity
@@ -197,45 +203,22 @@ export const OnboardingScreen: React.FC = () => {
 
               {/* Slide Content Fill */}
               <View nativeID={`onboarding-slide-${slide.id}-content-fill`} style={styles.slideContentFill}>
-                {/* Slide 1 Hero Logo & Visual Features Banner */}
+                {/* Slide 1 Hero Logo (2x Larger) */}
                 {isFirstSlide && (
                   <View nativeID="onboarding-slide1-hero-container" testID="onboarding-slide1-hero-container" style={styles.slide1HeroLogoContainer}>
                     <Image
                       nativeID="onboarding-hero-logo-large"
                       testID="onboarding-hero-logo-large"
                       source={require('../../../../assets/images/avLogo-removebg-preview.png')}
-                      style={styles.heroLogoNinetyPercent}
+                      style={styles.heroLogoDoubleSize}
                       resizeMode="contain"
                     />
-
-                    {/* Rich Visual Pills Box */}
-                    <View nativeID="onboarding-visual-pills-box" testID="onboarding-visual-pills-box" style={styles.visualPillsBox}>
-                      <View style={styles.visualPillRow}>
-                        <Ionicons name="checkmark-circle" size={16} color="#FF4D3D" />
-                        <Text style={styles.visualPillText}>3,500+ Verified Car Trims & Specs</Text>
-                      </View>
-                      <View style={styles.visualPillRow}>
-                        <Ionicons name="checkmark-circle" size={16} color="#FF4D3D" />
-                        <Text style={styles.visualPillText}>Egypt Official MSRP vs Dealer Price Tracker</Text>
-                      </View>
-                      <View style={styles.visualPillRow}>
-                        <Ionicons name="checkmark-circle" size={16} color="#FF4D3D" />
-                        <Text style={styles.visualPillText}>2-Minute AI Lifestyle Matcher</Text>
-                      </View>
-                    </View>
                   </View>
                 )}
 
-                {/* Number Badge Top Left (Slides 2 to 5) */}
-                {!isFirstSlide && (
-                  <View nativeID={`onboarding-slide-badge-${slide.id}`} style={styles.slideIndexPill}>
-                    <Text style={styles.slideIndexText}>{slide.slideNumber}</Text>
-                  </View>
-                )}
-
-                {/* Floating Content Section (Slides 1 to 5) */}
+                {/* Floating Direct Text Block (Directly on background photo) */}
                 {!isFinalSlide && (
-                  <View nativeID={`onboarding-content-card-${slide.id}`} testID={`onboarding-content-card-${slide.id}`} style={styles.floatingContentBlock}>
+                  <View nativeID={`onboarding-content-card-${slide.id}`} testID={`onboarding-content-card-${slide.id}`} style={styles.floatingTextBlock}>
                     <View style={styles.preHeaderRow}>
                       <Ionicons name={slide.preHeaderIcon} size={14} color="#FF4D3D" />
                       <Text style={styles.preHeaderText}>{slide.preHeaderText}</Text>
@@ -396,7 +379,6 @@ const styles = StyleSheet.create({
   },
   fullScreenGradientOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(5, 15, 25, 0.60)',
   },
 
   /* Top Navigation Overlay Bar */
@@ -413,10 +395,6 @@ const styles = StyleSheet.create({
   logoRow: {
     height: 40,
     justifyContent: 'center',
-  },
-  brandLogoHeaderLarge: {
-    width: 160,
-    height: 40,
   },
   skipButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
@@ -435,9 +413,9 @@ const styles = StyleSheet.create({
   /* Slide Content Fill */
   slideContentFill: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 60 : 100,
-    paddingBottom: 100, // Generous padding to prevent overlap with footer bar
+    paddingBottom: 95,
     justifyContent: 'space-between',
     zIndex: 10,
   },
@@ -445,105 +423,66 @@ const styles = StyleSheet.create({
   /* Slide 1 Hero Logo */
   slide1HeroLogoContainer: {
     alignItems: 'center',
-    gap: 16,
-    marginTop: 10,
+    marginTop: -110,
   },
-  heroLogoNinetyPercent: {
-    width: SCREEN_WIDTH * 0.95,
-    height: 380,
-  },
-  visualPillsBox: {
-    width: '100%',
-    backgroundColor: 'rgba(15, 41, 66, 0.88)',
-    borderRadius: 20,
-    padding: 14,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  visualPillRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  visualPillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  heroLogoDoubleSize: {
+    width: SCREEN_WIDTH * 0.96,
+    height: 440,
   },
 
-  /* Slide Index Pill (Slides 2 to 5) */
-  slideIndexPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-  },
-  slideIndexText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-
-  /* Floating Content Block (Slides 1 to 5) */
-  floatingContentBlock: {
-    backgroundColor: 'rgba(8, 25, 36, 0.92)',
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+  /* Floating Direct Text Block (No background box, directly on background photo) */
+  floatingTextBlock: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 4,
     gap: 6,
-    marginBottom: 75,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    marginBottom: 10,
   },
   preHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   preHeaderText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     color: '#FF4D3D',
     letterSpacing: 1.2,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   mainHeadline: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: '800',
     color: '#FFFFFF',
-    lineHeight: 32,
+    lineHeight: 36,
     letterSpacing: -0.4,
     textAlign: 'left',
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   subtitleText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.85)',
-    lineHeight: 20,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 22,
     textAlign: 'left',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 
   /* Final Slide 6 Auth Container */
   finalAuthContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   finalTypographyBlock: {
-    backgroundColor: 'rgba(8, 25, 36, 0.92)',
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 4,
     gap: 6,
   },
   finalActionStack: {
@@ -587,7 +526,7 @@ const styles = StyleSheet.create({
   guestLinkText: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   langPill: {
     flexDirection: 'row',
