@@ -1,24 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { ProfileScreen } from '../../src/features/profile/screens/ProfileScreen';
 
-export default function ProfileScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>User Account & Preferences</Text>
-    </SafeAreaView>
-  );
+export default function ProfileTab() {
+  return <ProfileScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-});

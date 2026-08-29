@@ -16,7 +16,10 @@ export default function HomeScreen() {
   };
 
   const handleCarPress = (car: TrendingCarItem) => {
-    console.log('Selected car:', car.name);
+    router.push({
+      pathname: '/car/[slug]',
+      params: { slug: car.slug },
+    });
   };
 
   return (
@@ -39,12 +42,12 @@ export default function HomeScreen() {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onFilterPress={() => console.log('Filter pressed')}
+          onFilterPress={() => router.push('/(tabs)/search')}
         />
 
         {/* Category Horizontal Chips */}
         <CategoryChips
-          onSelectCategory={(cat) => console.log('Selected category:', cat)}
+          onSelectCategory={(cat) => router.push('/(tabs)/search')}
         />
 
         {/* AI "Find My Car" Banner */}
@@ -54,7 +57,7 @@ export default function HomeScreen() {
 
         {/* Popular Now: Trending Cars Horizontal List */}
         <TrendingCarsList
-          onSeeAllPress={() => console.log('See All pressed')}
+          onSeeAllPress={() => router.push('/(tabs)/search')}
           onCarPress={handleCarPress}
         />
       </ScrollView>
