@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 interface HeaderProps {
   onNotificationPress?: () => void;
@@ -15,29 +16,40 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      {/* Brand Logo replacing Motory */}
-      <Image
-        source={require('../../../../assets/images/avLogo-removebg-preview.png')}
-        style={styles.logo}
-        resizeMode="cover"
-      />
+      {/* Brand Logo - Pressing opens Onboarding Tour */}
+      <TouchableOpacity onPress={() => router.push('/onboarding')} activeOpacity={0.8}>
+        <Image
+          source={require('../../../../assets/images/avLogo-removebg-preview.png')}
+          style={styles.logo}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
 
       {/* Right Action Icons */}
       <View style={styles.rightContainer}>
+        {/* Onboarding Tour Badge */}
+        <TouchableOpacity
+          style={styles.tourPill}
+          onPress={() => router.push('/onboarding')}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="compass-outline" size={16} color="#0F2942" />
+          <Text style={styles.tourText}>Tour</Text>
+        </TouchableOpacity>
+
         {/* Language Switcher Pill */}
         <TouchableOpacity style={styles.langPill} onPress={onLanguageToggle} activeOpacity={0.7}>
           <Ionicons name="language-outline" size={16} color="#374151" />
           <Text style={styles.langText}>{currentLang}</Text>
         </TouchableOpacity>
 
-        {/* Notification Bell */}
+        {/* Auth / Sign In Button */}
         <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={onNotificationPress}
+          style={styles.authButton}
+          onPress={() => router.push('/auth')}
           activeOpacity={0.7}
         >
-          <Ionicons name="notifications-outline" size={20} color="#1F2937" />
-          <View style={styles.notificationDot} />
+          <Ionicons name="person-circle-outline" size={24} color="#0F2942" />
         </TouchableOpacity>
       </View>
     </View>
@@ -60,13 +72,29 @@ const styles = StyleSheet.create({
   rightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
+  },
+  tourPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F4F8',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    gap: 4,
+  },
+  tourText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F2942',
   },
   langPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
@@ -74,30 +102,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   langText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#374151',
   },
-  notificationButton: {
-    position: 'relative',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  authButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
   },
 });
