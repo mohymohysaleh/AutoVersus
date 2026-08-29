@@ -14,11 +14,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onFilterPress,
 }) => {
   return (
-    <View style={styles.container}>
+    <View nativeID="home-search-bar-container" testID="home-search-bar-container" style={styles.container}>
       {/* Input Box */}
-      <View style={styles.inputContainer}>
+      <View nativeID="home-search-input-box" testID="home-search-input-box" style={styles.inputContainer}>
         <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
         <TextInput
+          nativeID="home-search-text-input"
+          testID="home-search-text-input"
+          accessibilityLabel="Search vehicle catalog"
           style={styles.input}
           placeholder="Search make, model, or type"
           placeholderTextColor="#9CA3AF"
@@ -29,6 +32,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* Filter Button Icon */}
       <TouchableOpacity
+        testID="home-search-filter-button"
+        accessibilityLabel="Open Vehicle Filters"
         style={styles.filterButton}
         onPress={onFilterPress}
         activeOpacity={0.8}

@@ -13,16 +13,20 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
 
   return (
     <TouchableOpacity
+      testID={`catalog-car-grid-card-${car.id}`}
+      accessibilityLabel={`View details for ${car.brand} ${car.model}`}
       style={styles.card}
       onPress={onPress}
       activeOpacity={0.9}
     >
       {/* Image Container */}
-      <View style={styles.imageContainer}>
+      <View nativeID={`catalog-car-image-container-${car.id}`} style={styles.imageContainer}>
         <Image source={{ uri: car.imageUrl }} style={styles.image} resizeMode="cover" />
 
         {/* Favorite Floating Heart Button */}
         <TouchableOpacity
+          testID={`catalog-favorite-button-${car.id}`}
+          accessibilityLabel={`Favorite ${car.model}`}
           style={styles.favoriteButton}
           onPress={() => setIsFavorite(!isFavorite)}
           activeOpacity={0.8}
@@ -36,7 +40,7 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
+      <View nativeID={`catalog-car-card-body-${car.id}`} style={styles.content}>
         {/* Brand Tag */}
         <Text style={styles.brandTag}>{car.brand.toUpperCase()}</Text>
 

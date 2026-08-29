@@ -76,20 +76,27 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View nativeID="home-trending-cars-container" testID="home-trending-cars-container" style={styles.container}>
       {/* Section Header */}
-      <View style={styles.headerRow}>
+      <View nativeID="home-trending-cars-header" style={styles.headerRow}>
         <View>
           <Text style={styles.popularLabel}>POPULAR NOW</Text>
           <Text style={styles.title}>Trending Cars</Text>
         </View>
-        <TouchableOpacity onPress={onSeeAllPress} activeOpacity={0.7}>
+        <TouchableOpacity
+          testID="home-see-all-trending-button"
+          accessibilityLabel="See All Trending Vehicles"
+          onPress={onSeeAllPress}
+          activeOpacity={0.7}
+        >
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
 
       {/* Horizontal Carousel List */}
       <ScrollView
+        nativeID="home-trending-cars-scrollview"
+        testID="home-trending-cars-scrollview"
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -99,6 +106,8 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
           return (
             <TouchableOpacity
               key={car.id}
+              testID={`home-trending-car-card-${car.id}`}
+              accessibilityLabel={`View ${car.name} ${car.subTitle}`}
               style={styles.card}
               onPress={() => onCarPress?.(car)}
               activeOpacity={0.9}
@@ -109,6 +118,8 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
 
                 {/* Floating Bookmark Button */}
                 <TouchableOpacity
+                  testID={`home-bookmark-button-${car.id}`}
+                  accessibilityLabel={`Bookmark ${car.name}`}
                   style={styles.bookmarkButton}
                   onPress={() => toggleBookmark(car.id)}
                   activeOpacity={0.8}

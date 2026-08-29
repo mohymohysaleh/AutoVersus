@@ -15,10 +15,17 @@ export const Header: React.FC<HeaderProps> = ({
   currentLang = 'EN',
 }) => {
   return (
-    <View style={styles.container}>
+    <View nativeID="home-header-container" testID="home-header-container" style={styles.container}>
       {/* Brand Logo - Pressing opens Onboarding Tour */}
-      <TouchableOpacity onPress={() => router.push('/onboarding')} activeOpacity={0.8}>
+      <TouchableOpacity
+        testID="home-logo-button"
+        accessibilityLabel="AutoVersus Home Logo"
+        onPress={() => router.push('/onboarding')}
+        activeOpacity={0.8}
+      >
         <Image
+          nativeID="home-logo-image"
+          testID="home-logo-image"
           source={require('../../../../assets/images/avLogo-removebg-preview.png')}
           style={styles.logo}
           resizeMode="cover"
@@ -26,9 +33,11 @@ export const Header: React.FC<HeaderProps> = ({
       </TouchableOpacity>
 
       {/* Right Action Icons */}
-      <View style={styles.rightContainer}>
+      <View nativeID="home-header-actions" testID="home-header-actions" style={styles.rightContainer}>
         {/* Onboarding Tour Badge */}
         <TouchableOpacity
+          testID="home-tour-button"
+          accessibilityLabel="Open App Tour"
           style={styles.tourPill}
           onPress={() => router.push('/onboarding')}
           activeOpacity={0.7}
@@ -38,13 +47,21 @@ export const Header: React.FC<HeaderProps> = ({
         </TouchableOpacity>
 
         {/* Language Switcher Pill */}
-        <TouchableOpacity style={styles.langPill} onPress={onLanguageToggle} activeOpacity={0.7}>
+        <TouchableOpacity
+          testID="home-language-button"
+          accessibilityLabel="Switch Language"
+          style={styles.langPill}
+          onPress={onLanguageToggle}
+          activeOpacity={0.7}
+        >
           <Ionicons name="language-outline" size={16} color="#374151" />
           <Text style={styles.langText}>{currentLang}</Text>
         </TouchableOpacity>
 
         {/* Auth / Sign In Button */}
         <TouchableOpacity
+          testID="home-auth-profile-button"
+          accessibilityLabel="Sign In or Profile"
           style={styles.authButton}
           onPress={() => router.push('/auth')}
           activeOpacity={0.7}

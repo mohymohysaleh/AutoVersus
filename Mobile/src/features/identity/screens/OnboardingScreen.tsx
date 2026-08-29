@@ -136,11 +136,13 @@ export const OnboardingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView nativeID="onboarding-screen-container" testID="onboarding-screen-container" style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* Main Horizontal Full-Screen Carousel */}
       <ScrollView
+        nativeID="onboarding-carousel-scrollview"
+        testID="onboarding-carousel-scrollview"
         ref={scrollViewRef}
         horizontal
         pagingEnabled
@@ -154,19 +156,25 @@ export const OnboardingScreen: React.FC = () => {
           const isFinalSlide = index === 5;
 
           return (
-            <View key={slide.id} style={styles.slideCard}>
+            <View
+              key={slide.id}
+              nativeID={`onboarding-slide-${slide.id}`}
+              testID={`onboarding-slide-${slide.id}`}
+              style={styles.slideCard}
+            >
               {/* Full-Bleed Background Photo taking over the whole screen */}
               <Image source={{ uri: slide.imageUri }} style={styles.fullScreenBgImage} resizeMode="cover" />
 
               {/* Gradient Darkness Overlay for crisp text legibility */}
-              <View style={styles.fullScreenGradientOverlay} />
+              <View nativeID={`onboarding-slide-${slide.id}-gradient-overlay`} style={styles.fullScreenGradientOverlay} />
 
               {/* Top Navigation Overlay Bar */}
-              <View style={styles.topHeaderOverlay}>
+              <View nativeID={`onboarding-slide-${slide.id}-top-header`} style={styles.topHeaderOverlay}>
                 <View style={styles.logoRow}>
-                  {/* Show top-left logo ONLY on slides 2 to 6, larger than before */}
                   {!isFirstSlide && (
                     <Image
+                      nativeID="onboarding-header-logo"
+                      testID="onboarding-header-logo"
                       source={require('../../../../assets/images/avLogo-removebg-preview.png')}
                       style={styles.brandLogoHeaderLarge}
                       resizeMode="contain"
@@ -175,26 +183,33 @@ export const OnboardingScreen: React.FC = () => {
                 </View>
 
                 {activeSlideIndex < 5 && (
-                  <TouchableOpacity onPress={handleContinueAsGuest} activeOpacity={0.7} style={styles.skipButton}>
+                  <TouchableOpacity
+                    testID="onboarding-skip-button"
+                    accessibilityLabel="Skip Onboarding"
+                    onPress={handleContinueAsGuest}
+                    activeOpacity={0.7}
+                    style={styles.skipButton}
+                  >
                     <Text style={styles.skipText}>Skip</Text>
                   </TouchableOpacity>
                 )}
               </View>
 
               {/* Slide Content Fill */}
-              <View style={styles.slideContentFill}>
+              <View nativeID={`onboarding-slide-${slide.id}-content-fill`} style={styles.slideContentFill}>
                 {/* Slide 1 Hero Logo & Visual Features Banner */}
                 {isFirstSlide && (
-                  <View style={styles.slide1HeroLogoContainer}>
-                    {/* Transparent Large Logo taking 90% screen width */}
+                  <View nativeID="onboarding-slide1-hero-container" testID="onboarding-slide1-hero-container" style={styles.slide1HeroLogoContainer}>
                     <Image
+                      nativeID="onboarding-hero-logo-large"
+                      testID="onboarding-hero-logo-large"
                       source={require('../../../../assets/images/avLogo-removebg-preview.png')}
                       style={styles.heroLogoNinetyPercent}
                       resizeMode="contain"
                     />
 
                     {/* Rich Visual Pills Box */}
-                    <View style={styles.visualPillsBox}>
+                    <View nativeID="onboarding-visual-pills-box" testID="onboarding-visual-pills-box" style={styles.visualPillsBox}>
                       <View style={styles.visualPillRow}>
                         <Ionicons name="checkmark-circle" size={16} color="#FF4D3D" />
                         <Text style={styles.visualPillText}>3,500+ Verified Car Trims & Specs</Text>
@@ -213,14 +228,14 @@ export const OnboardingScreen: React.FC = () => {
 
                 {/* Number Badge Top Left (Slides 2 to 5) */}
                 {!isFirstSlide && (
-                  <View style={styles.slideIndexPill}>
+                  <View nativeID={`onboarding-slide-badge-${slide.id}`} style={styles.slideIndexPill}>
                     <Text style={styles.slideIndexText}>{slide.slideNumber}</Text>
                   </View>
                 )}
 
-                {/* Floating Content Section (Slides 1 to 5) with generous bottom margin to prevent overlap */}
+                {/* Floating Content Section (Slides 1 to 5) */}
                 {!isFinalSlide && (
-                  <View style={styles.floatingContentBlock}>
+                  <View nativeID={`onboarding-content-card-${slide.id}`} testID={`onboarding-content-card-${slide.id}`} style={styles.floatingContentBlock}>
                     <View style={styles.preHeaderRow}>
                       <Ionicons name={slide.preHeaderIcon} size={14} color="#FF4D3D" />
                       <Text style={styles.preHeaderText}>{slide.preHeaderText}</Text>
@@ -233,7 +248,7 @@ export const OnboardingScreen: React.FC = () => {
 
                 {/* Final Slide 6 Authentication Stack */}
                 {isFinalSlide && (
-                  <View style={styles.finalAuthContainer}>
+                  <View nativeID="onboarding-final-auth-container" testID="onboarding-final-auth-container" style={styles.finalAuthContainer}>
                     <View style={styles.finalTypographyBlock}>
                       <View style={styles.preHeaderRow}>
                         <Ionicons name={slide.preHeaderIcon} size={14} color="#FF4D3D" />
@@ -244,20 +259,44 @@ export const OnboardingScreen: React.FC = () => {
                       <Text style={styles.subtitleText}>{slide.subtitle}</Text>
                     </View>
 
-                    <View style={styles.finalActionStack}>
-                      <TouchableOpacity style={styles.redNextButtonFull} onPress={handleCreateAccount} activeOpacity={0.85}>
+                    <View nativeID="onboarding-auth-actions-stack" testID="onboarding-auth-actions-stack" style={styles.finalActionStack}>
+                      <TouchableOpacity
+                        testID="onboarding-create-account-button"
+                        accessibilityLabel="Create an Account"
+                        style={styles.redNextButtonFull}
+                        onPress={handleCreateAccount}
+                        activeOpacity={0.85}
+                      >
                         <Text style={styles.redNextButtonText}>Create an Account</Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.glassSignInButton} onPress={handleSignIn} activeOpacity={0.85}>
+                      <TouchableOpacity
+                        testID="onboarding-signin-button"
+                        accessibilityLabel="Sign In"
+                        style={styles.glassSignInButton}
+                        onPress={handleSignIn}
+                        activeOpacity={0.85}
+                      >
                         <Text style={styles.glassSignInText}>Sign In to Account</Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity style={styles.guestLinkButton} onPress={handleContinueAsGuest} activeOpacity={0.7}>
+                      <TouchableOpacity
+                        testID="onboarding-guest-button"
+                        accessibilityLabel="Continue as Guest"
+                        style={styles.guestLinkButton}
+                        onPress={handleContinueAsGuest}
+                        activeOpacity={0.7}
+                      >
                         <Text style={styles.guestLinkText}>Continue as Guest →</Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity onPress={toggleLanguage} activeOpacity={0.7} style={styles.langPill}>
+                      <TouchableOpacity
+                        testID="onboarding-language-toggle-button"
+                        accessibilityLabel="Toggle Language"
+                        onPress={toggleLanguage}
+                        activeOpacity={0.7}
+                        style={styles.langPill}
+                      >
                         <Ionicons name="globe-outline" size={13} color="#FFFFFF" />
                         <Text style={styles.langPillText}>
                           {currentLang === 'EN' ? 'العربية / English' : 'English / العربية'}
@@ -274,14 +313,15 @@ export const OnboardingScreen: React.FC = () => {
 
       {/* Bottom Navigation Overlay Bar (Slides 1 to 5) */}
       {activeSlideIndex < 5 && (
-        <View style={styles.footerBarOverlay}>
+        <View nativeID="onboarding-footer-navigation-bar" testID="onboarding-footer-navigation-bar" style={styles.footerBarOverlay}>
           {/* Progress Dots (Left) */}
-          <View style={styles.dotsRow}>
+          <View nativeID="onboarding-progress-dots" testID="onboarding-progress-dots" style={styles.dotsRow}>
             {[0, 1, 2, 3, 4, 5].map((index) => {
               const isActive = index === activeSlideIndex;
               return (
                 <View
                   key={index}
+                  nativeID={`onboarding-dot-${index}`}
                   style={[
                     styles.dotBase,
                     isActive ? styles.dotActiveRed : styles.dotInactiveCircle,
@@ -295,13 +335,25 @@ export const OnboardingScreen: React.FC = () => {
           <View style={styles.footerNavButtonsRight}>
             {/* Circular Back Arrow Button */}
             {activeSlideIndex > 0 && (
-              <TouchableOpacity style={styles.circleBackButton} onPress={goToPrevSlide} activeOpacity={0.7}>
+              <TouchableOpacity
+                testID="onboarding-prev-slide-button"
+                accessibilityLabel="Previous Slide"
+                style={styles.circleBackButton}
+                onPress={goToPrevSlide}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="chevron-back" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             )}
 
             {/* Rounded Red Next Button */}
-            <TouchableOpacity style={styles.redNextPillButton} onPress={goToNextSlide} activeOpacity={0.85}>
+            <TouchableOpacity
+              testID="onboarding-next-slide-button"
+              accessibilityLabel="Next Slide"
+              style={styles.redNextPillButton}
+              onPress={goToNextSlide}
+              activeOpacity={0.85}
+            >
               <Text style={styles.redNextPillText}>Next</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
@@ -311,7 +363,7 @@ export const OnboardingScreen: React.FC = () => {
 
       {/* Micro Bottom Subtitle */}
       {activeSlideIndex < 5 && (
-        <View style={styles.microBottomRow}>
+        <View nativeID="onboarding-micro-footer-text" style={styles.microBottomRow}>
           <Ionicons name="search-outline" size={11} color="rgba(255, 255, 255, 0.6)" />
           <Text style={styles.microBottomText}>Tap, swipe, discover</Text>
         </View>
@@ -390,7 +442,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  /* Slide 1 Hero Logo (No white background, 90% screen width) */
+  /* Slide 1 Hero Logo */
   slide1HeroLogoContainer: {
     alignItems: 'center',
     gap: 16,
@@ -437,7 +489,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  /* Floating Content Block (Slides 1 to 5) with generous bottom margin */
+  /* Floating Content Block (Slides 1 to 5) */
   floatingContentBlock: {
     backgroundColor: 'rgba(8, 25, 36, 0.92)',
     borderRadius: 24,
@@ -445,7 +497,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
     gap: 6,
-    marginBottom: 75, // Critical gap to stop card from overlapping footer bar & next button!
+    marginBottom: 75,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,

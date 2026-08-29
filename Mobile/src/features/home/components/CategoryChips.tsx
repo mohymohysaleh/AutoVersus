@@ -18,8 +18,10 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({ onSelectCategory }
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View nativeID="home-category-chips-wrapper" testID="home-category-chips-wrapper" style={styles.wrapper}>
       <ScrollView
+        nativeID="home-category-chips-scrollview"
+        testID="home-category-chips-scrollview"
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
@@ -29,6 +31,8 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({ onSelectCategory }
           return (
             <TouchableOpacity
               key={cat}
+              testID={`home-category-chip-${cat.toLowerCase()}`}
+              accessibilityLabel={`Filter by ${cat}`}
               style={[styles.chip, isActive ? styles.activeChip : styles.inactiveChip]}
               onPress={() => handlePress(cat)}
               activeOpacity={0.8}

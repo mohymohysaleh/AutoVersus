@@ -8,9 +8,9 @@ interface FindMyCarBannerProps {
 
 export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress }) => {
   return (
-    <View style={styles.container}>
+    <View nativeID="home-quiz-banner-container" testID="home-quiz-banner-container" style={styles.container}>
       {/* Left Content Area */}
-      <View style={styles.contentLeft}>
+      <View nativeID="home-quiz-banner-content" testID="home-quiz-banner-content" style={styles.contentLeft}>
         {/* Header Tag */}
         <View style={styles.tagRow}>
           <Ionicons name="sparkles-outline" size={14} color="#FFFFFF" />
@@ -29,6 +29,8 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
 
         {/* CTA Quiz Button */}
         <TouchableOpacity
+          testID="home-take-quiz-button"
+          accessibilityLabel="Take 2-Min Lifestyle Spec Quiz"
           style={styles.quizButton}
           onPress={onQuizPress}
           activeOpacity={0.85}
@@ -39,7 +41,7 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
       </View>
 
       {/* Right Circle Graphic */}
-      <View style={styles.graphicCircle}>
+      <View nativeID="home-quiz-banner-graphic" style={styles.graphicCircle}>
         <Ionicons name="car-outline" size={42} color="#FFFFFF" />
       </View>
     </View>

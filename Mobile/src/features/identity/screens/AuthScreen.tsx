@@ -73,24 +73,32 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView nativeID="auth-screen-container" testID="auth-screen-container" style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Top Bar with Logo & Close Button */}
-      <View style={styles.topBar}>
+      <View nativeID="auth-top-bar" testID="auth-top-bar" style={styles.topBar}>
         <Image
+          nativeID="auth-logo-image"
+          testID="auth-logo-image"
           source={require('../../../../assets/images/avLogo-removebg-preview.png')}
           style={styles.logoImage}
           resizeMode="contain"
         />
-        <TouchableOpacity style={styles.closeButton} onPress={handleClose} activeOpacity={0.7}>
+        <TouchableOpacity
+          testID="auth-close-button"
+          accessibilityLabel="Close Authentication Screen"
+          style={styles.closeButton}
+          onPress={handleClose}
+          activeOpacity={0.7}
+        >
           <Ionicons name="close" size={20} color="#1F2937" />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
         {/* Title Header */}
-        <View style={styles.titleHeader}>
+        <View nativeID="auth-title-header" testID="auth-title-header" style={styles.titleHeader}>
           <Text style={styles.tagline}>AUTOMOTIVE PLATFORM</Text>
           <Text style={styles.headline}>
             {activeTab === 'signin' ? 'Sign In to AutoVersus' : 'Create Your Account'}
@@ -103,8 +111,10 @@ export const AuthScreen: React.FC = () => {
         </View>
 
         {/* Tab Switcher Bar */}
-        <View style={styles.tabBar}>
+        <View nativeID="auth-tab-bar" testID="auth-tab-bar" style={styles.tabBar}>
           <TouchableOpacity
+            testID="auth-tab-signin"
+            accessibilityLabel="Switch to Sign In"
             style={[styles.tabButton, activeTab === 'signin' && styles.tabButtonActive]}
             onPress={() => setActiveTab('signin')}
             activeOpacity={0.8}
@@ -115,6 +125,8 @@ export const AuthScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
+            testID="auth-tab-signup"
+            accessibilityLabel="Switch to Sign Up"
             style={[styles.tabButton, activeTab === 'signup' && styles.tabButtonActive]}
             onPress={() => setActiveTab('signup')}
             activeOpacity={0.8}
@@ -127,13 +139,16 @@ export const AuthScreen: React.FC = () => {
 
         {/* SIGN IN FORM */}
         {activeTab === 'signin' && (
-          <View style={styles.formContainer}>
+          <View nativeID="auth-signin-form" testID="auth-signin-form" style={styles.formContainer}>
             {/* Email Address */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email Address</Text>
               <View style={styles.inputWrapper}>
                 <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signin-email-input"
+                  testID="auth-signin-email-input"
+                  accessibilityLabel="Email Address"
                   style={styles.textInput}
                   placeholder="name@domain.com"
                   placeholderTextColor="#9CA3AF"
@@ -151,6 +166,9 @@ export const AuthScreen: React.FC = () => {
               <View style={styles.inputWrapper}>
                 <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signin-password-input"
+                  testID="auth-signin-password-input"
+                  accessibilityLabel="Password"
                   style={styles.textInput}
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
@@ -158,7 +176,11 @@ export const AuthScreen: React.FC = () => {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <TouchableOpacity
+                  testID="auth-signin-password-toggle"
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
                   <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
@@ -167,6 +189,7 @@ export const AuthScreen: React.FC = () => {
             {/* Remember Me & Forgot Password Row */}
             <View style={styles.optionsRow}>
               <TouchableOpacity
+                testID="auth-remember-me-checkbox"
                 style={styles.checkboxRow}
                 onPress={() => setRememberMe(!rememberMe)}
                 activeOpacity={0.8}
@@ -177,13 +200,19 @@ export const AuthScreen: React.FC = () => {
                 <Text style={styles.checkboxLabel}>Remember Me</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity activeOpacity={0.7}>
+              <TouchableOpacity testID="auth-forgot-password-button" activeOpacity={0.7}>
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
             {/* Sign In Primary CTA */}
-            <TouchableOpacity style={styles.primaryButtonNavy} onPress={handleSignInSubmit} activeOpacity={0.85}>
+            <TouchableOpacity
+              testID="auth-signin-submit-button"
+              accessibilityLabel="Submit Sign In"
+              style={styles.primaryButtonNavy}
+              onPress={handleSignInSubmit}
+              activeOpacity={0.85}
+            >
               <Text style={styles.primaryButtonText}>Sign In</Text>
             </TouchableOpacity>
 
@@ -195,7 +224,13 @@ export const AuthScreen: React.FC = () => {
             </View>
 
             {/* Continue with Google */}
-            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleAuth} activeOpacity={0.85}>
+            <TouchableOpacity
+              testID="auth-google-signin-button"
+              accessibilityLabel="Continue with Google"
+              style={styles.googleButton}
+              onPress={handleGoogleAuth}
+              activeOpacity={0.85}
+            >
               <Ionicons name="logo-google" size={20} color="#4285F4" style={{ marginRight: 10 }} />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
@@ -204,13 +239,16 @@ export const AuthScreen: React.FC = () => {
 
         {/* SIGN UP FORM */}
         {activeTab === 'signup' && (
-          <View style={styles.formContainer}>
+          <View nativeID="auth-signup-form" testID="auth-signup-form" style={styles.formContainer}>
             {/* Full Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Full Name</Text>
               <View style={styles.inputWrapper}>
                 <Ionicons name="person-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signup-fullname-input"
+                  testID="auth-signup-fullname-input"
+                  accessibilityLabel="Full Name"
                   style={styles.textInput}
                   placeholder="e.g. Ahmed Hassan"
                   placeholderTextColor="#9CA3AF"
@@ -226,6 +264,9 @@ export const AuthScreen: React.FC = () => {
               <View style={styles.inputWrapper}>
                 <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signup-email-input"
+                  testID="auth-signup-email-input"
+                  accessibilityLabel="Email Address"
                   style={styles.textInput}
                   placeholder="name@domain.com"
                   placeholderTextColor="#9CA3AF"
@@ -245,6 +286,9 @@ export const AuthScreen: React.FC = () => {
                   <Text style={styles.countryCodeText}>🇪🇬 +20</Text>
                 </View>
                 <TextInput
+                  nativeID="auth-signup-phone-input"
+                  testID="auth-signup-phone-input"
+                  accessibilityLabel="Mobile Phone"
                   style={[styles.textInput, { flex: 1 }]}
                   placeholder="100 123 4567"
                   placeholderTextColor="#9CA3AF"
@@ -261,6 +305,9 @@ export const AuthScreen: React.FC = () => {
               <View style={styles.inputWrapper}>
                 <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signup-password-input"
+                  testID="auth-signup-password-input"
+                  accessibilityLabel="Password"
                   style={styles.textInput}
                   placeholder="At least 8 characters"
                   placeholderTextColor="#9CA3AF"
@@ -268,7 +315,11 @@ export const AuthScreen: React.FC = () => {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <TouchableOpacity
+                  testID="auth-signup-password-toggle"
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
                   <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
@@ -280,6 +331,9 @@ export const AuthScreen: React.FC = () => {
               <View style={styles.inputWrapper}>
                 <Ionicons name="shield-checkmark-outline" size={20} color="#6B7280" style={styles.inputIcon} />
                 <TextInput
+                  nativeID="auth-signup-confirmpassword-input"
+                  testID="auth-signup-confirmpassword-input"
+                  accessibilityLabel="Confirm Password"
                   style={styles.textInput}
                   placeholder="Re-enter password"
                   placeholderTextColor="#9CA3AF"
@@ -292,6 +346,7 @@ export const AuthScreen: React.FC = () => {
 
             {/* Agree Terms Checkbox */}
             <TouchableOpacity
+              testID="auth-terms-checkbox"
               style={styles.checkboxRow}
               onPress={() => setAgreeTerms(!agreeTerms)}
               activeOpacity={0.8}
@@ -306,7 +361,13 @@ export const AuthScreen: React.FC = () => {
             </TouchableOpacity>
 
             {/* Create Account Red CTA */}
-            <TouchableOpacity style={styles.primaryButtonRed} onPress={handleSignUpSubmit} activeOpacity={0.85}>
+            <TouchableOpacity
+              testID="auth-signup-submit-button"
+              accessibilityLabel="Submit Create Account"
+              style={styles.primaryButtonRed}
+              onPress={handleSignUpSubmit}
+              activeOpacity={0.85}
+            >
               <Text style={styles.primaryButtonText}>Create Account</Text>
             </TouchableOpacity>
 
@@ -318,7 +379,13 @@ export const AuthScreen: React.FC = () => {
             </View>
 
             {/* Continue with Google */}
-            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleAuth} activeOpacity={0.85}>
+            <TouchableOpacity
+              testID="auth-google-signup-button"
+              accessibilityLabel="Continue with Google"
+              style={styles.googleButton}
+              onPress={handleGoogleAuth}
+              activeOpacity={0.85}
+            >
               <Ionicons name="logo-google" size={20} color="#4285F4" style={{ marginRight: 10 }} />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
