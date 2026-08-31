@@ -10,6 +10,7 @@ interface CarGridCardProps {
 
 export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [imgSrc, setImgSrc] = useState(car.imageUrl);
 
   return (
     <TouchableOpacity
@@ -21,7 +22,14 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
     >
       {/* Image Container */}
       <View nativeID={`catalog-car-image-container-${car.id}`} style={styles.imageContainer}>
-        <Image source={{ uri: car.imageUrl }} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{ uri: imgSrc }}
+          style={styles.image}
+          resizeMode="cover"
+          onError={() => {
+            setImgSrc('https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80');
+          }}
+        />
 
         {/* Favorite Floating Heart Button */}
         <TouchableOpacity

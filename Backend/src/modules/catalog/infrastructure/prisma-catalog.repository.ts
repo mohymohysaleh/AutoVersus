@@ -51,8 +51,8 @@ export class PrismaCatalogRepository implements ICatalogRepository {
   }
 
   async searchVehicles(filters: CarSearchFilterDto): Promise<{ items: VariantDetailDto[]; total: number }> {
-    const page = filters.page || 1;
-    const limit = filters.limit || 10;
+    const page = filters.page ? Number(filters.page) : 1;
+    const limit = filters.limit ? Number(filters.limit) : 100;
     const skip = (page - 1) * limit;
 
     const where: any = { isPublished: true };

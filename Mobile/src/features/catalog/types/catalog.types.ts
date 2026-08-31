@@ -8,11 +8,11 @@ export interface CarItem {
   priceAmount: number;
   imageUrl: string;
   slug: string;
-  category: 'EV' | 'Hybrid' | 'Petrol' | 'Diesel';
+  category: 'EV' | 'Hybrid' | 'Petrol' | 'Diesel' | string;
   bodyType: string;
   rangeKm?: number;
   fuelConsumption?: string;
-  transmission: 'Auto' | 'Manual';
+  transmission: 'Auto' | 'Manual' | 'CVT' | 'DCT' | string;
   seats: number;
   horsepower?: number;
 }

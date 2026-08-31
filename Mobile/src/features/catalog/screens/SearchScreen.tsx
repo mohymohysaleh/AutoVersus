@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -6,129 +6,100 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   StyleSheet,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CarGridCard } from '../components/CarGridCard';
 import { FilterModal } from '../components/FilterModal';
 import { CarItem, FilterState } from '../types/catalog.types';
+import { catalogApi, BrandDto } from '../api/catalog.api';
 import { router } from 'expo-router';
-
-const MOCK_CARS: CarItem[] = [
-  {
-    id: '1',
-    brand: 'HYUNDAI',
-    model: 'IONIQ 6',
-    trimName: 'Limited',
-    fullTitle: 'IONIQ 6 Limited',
-    price: 'From EGP 2,450,000',
-    priceAmount: 2450000,
-    imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
-    slug: 'hyundai-ioniq-6-limited',
-    category: 'EV',
-    bodyType: 'Sedan',
-    rangeKm: 550,
-    transmission: 'Auto',
-    seats: 5,
-  },
-  {
-    id: '2',
-    brand: 'LAND ROVER',
-    model: 'Range Rover',
-    trimName: 'Velar',
-    fullTitle: 'Range Rover Velar',
-    price: 'From EGP 4,200,000',
-    priceAmount: 4200000,
-    imageUrl: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
-    slug: 'range-rover-velar',
-    category: 'Hybrid',
-    bodyType: 'SUV',
-    fuelConsumption: '5.2 L/100km',
-    transmission: 'Auto',
-    seats: 5,
-  },
-  {
-    id: '3',
-    brand: 'LAND ROVER',
-    model: 'Velar',
-    trimName: 'Dynamic SE',
-    fullTitle: 'Velar Dynamic SE',
-    price: 'From EGP 4,500,000',
-    priceAmount: 4500000,
-    imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80',
-    slug: 'velar-dynamic-se',
-    category: 'Hybrid',
-    bodyType: 'SUV',
-    transmission: 'Auto',
-    seats: 5,
-  },
-  {
-    id: '4',
-    brand: 'BMW',
-    model: 'M3',
-    trimName: 'Competition',
-    fullTitle: 'M3 Competition',
-    price: 'From EGP 5,200,000',
-    priceAmount: 5200000,
-    imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
-    slug: 'bmw-m3-competition',
-    category: 'Petrol',
-    bodyType: 'Sedan',
-    fuelConsumption: '8.7 L/100km',
-    transmission: 'Auto',
-    seats: 5,
-  },
-  {
-    id: '5',
-    brand: 'PORSCHE',
-    model: 'Taycan',
-    trimName: 'Sport',
-    fullTitle: 'Taycan Sport',
-    price: 'From EGP 4,800,000',
-    priceAmount: 4800000,
-    imageUrl: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=800&q=80',
-    slug: 'porsche-taycan-sport',
-    category: 'EV',
-    bodyType: 'Coupe',
-    rangeKm: 503,
-    transmission: 'Auto',
-    seats: 4,
-  },
-  {
-    id: '6',
-    brand: 'PORSCHE',
-    model: 'Porsche Taycan',
-    trimName: '4S',
-    fullTitle: 'Porsche Taycan 4S',
-    price: 'From EGP 5,450,000',
-    priceAmount: 5450000,
-    imageUrl: 'https://images.unsplash.com/photo-1611245141725-d7864f9f1d82?auto=format&fit=crop&w=800&q=80',
-    slug: 'porsche-taycan-4s',
-    category: 'EV',
-    bodyType: 'Sedan',
-    rangeKm: 590,
-    transmission: 'Auto',
-    seats: 4,
-  },
-];
+import { resolveCarImage } from '../../../shared/utils/car-image.utils';
 
 export const SearchScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [activeFiltersCount, setActiveFiltersCount] = useState(3);
+  const [activeFiltersCount, setActiveFiltersCount] = useState(0);
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
+  
+  // Dynamic Catalog State (100% API Driven from PostgreSQL Database)
+  const [brands, setBrands] = useState<BrandDto[]>([]);
+  const [selectedBrandSlug, setSelectedBrandSlug] = useState<string | null>(null);
+  const [carsList, setCarsList] = useState<CarItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredCars = MOCK_CARS.filter(
-    (car) =>
+  // 1. Fetch Brands & Vehicles from Backend API on mount
+  useEffect(() => {
+    loadCatalogData();
+  }, []);
+
+  const loadCatalogData = async (brandSlug?: string | null) => {
+    setIsLoading(true);
+    try {
+      // Fetch Brands from Database
+      if (brands.length === 0) {
+        const fetchedBrands = await catalogApi.fetchBrands();
+        if (fetchedBrands && fetchedBrands.length > 0) {
+          setBrands(fetchedBrands);
+        }
+      }
+
+      // Fetch Vehicles from Backend Search API
+      const searchRes = await catalogApi.searchVehicles({
+        brandSlug: brandSlug || undefined,
+        limit: 300,
+      });
+
+      if (searchRes.items && searchRes.items.length > 0) {
+        const mappedItems: CarItem[] = searchRes.items.map((item) => ({
+          id: item.id,
+          brand: item.brandName.toUpperCase(),
+          model: item.modelName,
+          trimName: item.trimName,
+          fullTitle: `${item.brandName} ${item.modelName} ${item.trimName}`,
+          price: item.startingPriceEGP ? `From EGP ${item.startingPriceEGP.toLocaleString()}` : 'Price on Request',
+          priceAmount: item.startingPriceEGP || 0,
+          imageUrl: resolveCarImage(item.brandName, item.modelName, item.trimName, item.engine?.fuelType),
+          slug: item.slug,
+          category: item.engine?.fuelType || 'Petrol',
+          bodyType: 'Sedan',
+          transmission: item.engine?.transmission || 'Auto',
+          seats: 5,
+        }));
+        setCarsList(mappedItems);
+      } else {
+        setCarsList([]);
+      }
+    } catch (err) {
+      console.warn('Catalog load error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectBrand = (slug: string | null) => {
+    setSelectedBrandSlug(slug);
+    loadCatalogData(slug);
+  };
+
+  // Filter cars based on search input & selected brand
+  const filteredCars = carsList.filter((car) => {
+    const matchesSearch =
       car.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
       car.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      car.trimName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      car.trimName.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesBrand = !selectedBrandSlug || car.brand.toLowerCase() === selectedBrandSlug.toLowerCase();
+    return matchesSearch && matchesBrand;
+  });
+
+  const selectedBrandObject = brands.find((b) => b.slug.toLowerCase() === selectedBrandSlug?.toLowerCase());
 
   const handleCarPress = (car: CarItem) => {
-    // Navigate to Car Details Screen
     router.push({
       pathname: '/car/[slug]',
       params: { slug: car.slug },
@@ -139,20 +110,25 @@ export const SearchScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Top Header & Search Bar Row */}
+      {/* Top Search & Layout Toggle Bar */}
       <View style={styles.topHeader}>
         <View style={styles.searchInputWrapper}>
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search cars"
+            placeholder="Search make, model, or spec..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Layout Toggle Icons */}
+        {/* Layout Toggle Buttons */}
         <View style={styles.layoutToggleContainer}>
           <TouchableOpacity
             style={[styles.toggleBtn, layoutMode === 'grid' && styles.toggleBtnActive]}
@@ -169,7 +145,76 @@ export const SearchScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Filters & Sort Controls Bar */}
+      {/* HORIZONTAL BRAND SELECTOR BAR */}
+      <View style={styles.brandSelectorContainer}>
+        <View style={styles.brandSelectorHeader}>
+          <Text style={styles.sectionLabel}>EXPLORE BY BRAND</Text>
+          {selectedBrandSlug && (
+            <TouchableOpacity
+              style={styles.clearBrandButton}
+              onPress={() => handleSelectBrand(null)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.clearBrandText}>Clear Filter ✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandPillScroll}>
+          {/* ALL BRANDS PILL */}
+          <TouchableOpacity
+            style={[styles.brandPill, !selectedBrandSlug && styles.brandPillActive]}
+            onPress={() => handleSelectBrand(null)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.brandPillText, !selectedBrandSlug && styles.brandPillTextActive]}>
+              All Brands
+            </Text>
+          </TouchableOpacity>
+
+          {/* BRAND PILLS */}
+          {brands.map((b) => {
+            const isActive = selectedBrandSlug === b.slug;
+            return (
+              <TouchableOpacity
+                key={b.id || b.slug}
+                style={[styles.brandPill, isActive && styles.brandPillActive]}
+                onPress={() => handleSelectBrand(b.slug)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.brandPillText, isActive && styles.brandPillTextActive]}>
+                  {b.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* AUTO-DATA STYLED BRAND HIERARCHY BANNER (When Brand Selected) */}
+      {selectedBrandSlug && (
+        <View style={styles.autoDataBrandCard}>
+          <View style={styles.autoDataHeaderRow}>
+            <View style={styles.brandBadgeSquare}>
+              <Text style={styles.brandBadgeLetter}>
+                {selectedBrandObject?.name ? selectedBrandObject.name.charAt(0) : 'B'}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.autoDataBrandTitle}>{selectedBrandObject?.name} Catalog</Text>
+              <Text style={styles.autoDataBrandSub}>
+                {selectedBrandObject?.country ? `Origin: ${selectedBrandObject.country}` : 'Global Brand'} • {filteredCars.length} Models & Trims
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.viewAllBrandModelsBtn} onPress={() => handleSelectBrand(null)}>
+              <Ionicons name="apps-outline" size={16} color="#0F2942" />
+              <Text style={styles.viewAllBrandModelsText}>All Makes</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Controls Bar (Filter Modal Trigger & Sort) */}
       <View style={styles.controlsRow}>
         <TouchableOpacity
           style={styles.filtersPillButton}
@@ -177,7 +222,7 @@ export const SearchScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Ionicons name="options-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.filtersPillText}>Filters</Text>
+          <Text style={styles.filtersPillText}>Filter Specs</Text>
           {activeFiltersCount > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
@@ -185,45 +230,58 @@ export const SearchScreen: React.FC = () => {
           )}
         </TouchableOpacity>
 
-        {/* Sort Dropdown Pill */}
         <TouchableOpacity style={styles.sortDropdown}>
           <Text style={styles.sortText}>Price: Low to High</Text>
           <Ionicons name="chevron-down" size={16} color="#374151" />
         </TouchableOpacity>
       </View>
 
-      {/* Title Header */}
+      {/* Section Title */}
       <View style={styles.titleRow}>
-        <View>
-          <Text style={styles.curatedLabel}>CURATED FOR YOU</Text>
-          <Text style={styles.mainTitle}>Browse cars</Text>
-        </View>
+        <Text style={styles.mainTitle}>
+          {selectedBrandObject ? `${selectedBrandObject.name} Models` : 'All Vehicle Specifications'}
+        </Text>
         <Text style={styles.resultCount}>{filteredCars.length} results</Text>
       </View>
 
-      {/* Grid of Cars */}
-      <FlatList
-        data={filteredCars}
-        keyExtractor={(item) => item.id}
-        numColumns={layoutMode === 'grid' ? 2 : 1}
-        key={layoutMode}
-        contentContainerStyle={styles.gridContent}
-        columnWrapperStyle={layoutMode === 'grid' ? styles.columnWrapper : undefined}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <CarGridCard car={item} onPress={() => handleCarPress(item)} />
-        )}
-      />
+      {/* Loading Indicator */}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color="#0F2942" size="large" />
+          <Text style={styles.loadingText}>Fetching database specifications...</Text>
+        </View>
+      ) : (
+        /* Grid of Cars */
+        <FlatList
+          data={filteredCars}
+          keyExtractor={(item) => item.id}
+          numColumns={layoutMode === 'grid' ? 2 : 1}
+          key={layoutMode}
+          contentContainerStyle={styles.gridContent}
+          columnWrapperStyle={layoutMode === 'grid' ? styles.columnWrapper : undefined}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <CarGridCard car={item} onPress={() => handleCarPress(item)} />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="car-sport-outline" size={48} color="#9CA3AF" />
+              <Text style={styles.emptyTitle}>No cars found</Text>
+              <Text style={styles.emptySub}>Try searching another brand or clearing filters.</Text>
+              <TouchableOpacity style={styles.resetButton} onPress={() => handleSelectBrand(null)}>
+                <Text style={styles.resetButtonText}>Reset Catalog Filters</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+      )}
 
       {/* Filter Bottom Sheet Modal */}
       <FilterModal
         visible={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         onApplyFilters={(filters: FilterState) => {
-          console.log('Applied filters:', filters);
-          setActiveFiltersCount(
-            filters.fuelTypes.length + filters.transmissions.length + filters.seats.length
-          );
+          setActiveFiltersCount(filters.fuelTypes.length + filters.transmissions.length + filters.seats.length);
         }}
         resultCount={filteredCars.length}
       />
@@ -251,7 +309,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#E5E7EB',
     paddingHorizontal: 16,
     height: 48,
   },
@@ -285,12 +343,119 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  brandSelectorContainer: {
+    marginBottom: 12,
+  },
+  brandSelectorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#C92A2A',
+    letterSpacing: 1.2,
+  },
+  clearBrandButton: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  clearBrandText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#C92A2A',
+  },
+  brandPillScroll: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  brandPill: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandPillActive: {
+    backgroundColor: '#0F2942',
+    borderColor: '#0F2942',
+  },
+  brandPillText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  brandPillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  autoDataBrandCard: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
+  autoDataHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  brandBadgeSquare: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#0F2942',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandBadgeLetter: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  autoDataBrandTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F2942',
+  },
+  autoDataBrandSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  viewAllBrandModelsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 4,
+  },
+  viewAllBrandModelsText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F2942',
+  },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   filtersPillButton: {
     flexDirection: 'row',
@@ -337,31 +502,61 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  curatedLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#6B7280',
-    letterSpacing: 1,
-    marginBottom: 2,
+    marginBottom: 14,
   },
   mainTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F2942',
   },
   resultCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#64748B',
   },
   gridContent: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 32,
   },
   columnWrapper: {
     justifyContent: 'space-between',
     gap: 16,
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0F2942',
+  },
+  emptySub: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  resetButton: {
+    marginTop: 12,
+    backgroundColor: '#0F2942',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
