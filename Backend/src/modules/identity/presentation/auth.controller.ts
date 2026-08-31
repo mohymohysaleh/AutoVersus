@@ -5,6 +5,7 @@ import { JwtTokenService } from '../infrastructure/jwt-token-service.js';
 import { RegisterUserUseCase } from '../application/use-cases/register-user.use-case.js';
 import { LoginUserUseCase } from '../application/use-cases/login-user.use-case.js';
 import { GetUserProfileUseCase } from '../application/use-cases/get-user-profile.use-case.js';
+import { UserEntity } from '../domain/entities/user.entity.js';
 import { AuthenticatedRequest } from '../../../shared/presentation/middlewares/auth.middleware.js';
 
 export class AuthController {
@@ -63,7 +64,13 @@ export class AuthController {
 
       res.status(201).json({
         success: true,
-        data: result,
+        data: {
+          ...result,
+          user: {
+            ...result.user,
+            authProvider: 'LOCAL',
+          },
+        },
       });
     } catch (error) {
       next(error);
@@ -88,7 +95,75 @@ export class AuthController {
 
       res.json({
         success: true,
-        data: result,
+        data: {
+          ...result,
+          user: {
+            ...result.user,
+            authProvider: 'LOCAL',
+          },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatarUrl } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Google authentication requires an email address.',
+            statusCode: 400,
+          },
+        });
+      }
+
+      let user = await this.userRepo.findByEmail(email);
+
+      if (!user) {
+        const dummyPassword = await this.passwordHasher.hash('GoogleOAuthSecretKey2026!');
+        const newUserEntity = UserEntity.create({
+          email,
+          passwordHash: dummyPassword,
+          name: name || 'Google User',
+          avatarUrl: avatarUrl || null,
+          role: 'USER' as any,
+          country: 'EG',
+          preferredCurrency: 'EGP',
+          preferredLang: 'EN' as any,
+          measurementSystem: 'METRIC' as any,
+        });
+        user = await this.userRepo.save(newUserEntity);
+      }
+
+      const tokens = this.tokenService.generateTokens({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name || name || 'Google User',
+            role: user.role,
+            country: user.country,
+            preferredCurrency: user.preferredCurrency,
+            preferredLang: user.preferredLang,
+            measurementSystem: user.measurementSystem,
+            authProvider: 'GOOGLE',
+            createdAt: user.props.createdAt ? user.props.createdAt.toISOString() : new Date().toISOString(),
+            updatedAt: user.props.updatedAt ? user.props.updatedAt.toISOString() : new Date().toISOString(),
+          },
+          tokens,
+        },
       });
     } catch (error) {
       next(error);

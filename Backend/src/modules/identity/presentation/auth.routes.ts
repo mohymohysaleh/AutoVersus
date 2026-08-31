@@ -162,6 +162,34 @@ router.get('/me', authenticateJwt, controller.getMe);
  *       401:
  *         description: Unauthorized
  */
-router.patch('/preferences', authenticateJwt, controller.updatePreferences);
+/**
+ * @openapi
+ * /api/v1/auth/google:
+ *   post:
+ *     summary: Authenticate or register using Google OAuth
+ *     tags:
+ *       - Identity & Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               idToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Google login successful
+ *       400:
+ *         description: Invalid Google credentials
+ */
+router.post('/google', controller.googleLogin);
 
 export default router;

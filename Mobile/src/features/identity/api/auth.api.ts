@@ -2,6 +2,7 @@ import { apiClient } from '../../../shared/services/api-client';
 import {
   RegisterUserDto,
   LoginUserDto,
+  GoogleAuthDto,
   AuthResponseData,
   UserProfile,
   AuthTokens,
@@ -27,6 +28,17 @@ export const authApi = {
     const response = (await apiClient.post('/v1/auth/login', dto)) as unknown as ApiResponse<AuthResponseData>;
     if (!response.success || !response.data) {
       throw new Error(response.error?.message || 'Invalid email or password.');
+    }
+    return response.data;
+  },
+
+  /**
+   * Authenticate or provision account via Google OAuth
+   */
+  async googleLogin(dto: GoogleAuthDto): Promise<AuthResponseData> {
+    const response = (await apiClient.post('/v1/auth/google', dto)) as unknown as ApiResponse<AuthResponseData>;
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || 'Google authentication failed.');
     }
     return response.data;
   },

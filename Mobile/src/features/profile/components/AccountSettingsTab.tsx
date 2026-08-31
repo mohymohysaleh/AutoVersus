@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../identity/store/auth.store';
@@ -17,17 +18,23 @@ import { useAuthStore } from '../../identity/store/auth.store';
 type ActiveModal = 'profile' | 'email' | 'market' | 'currency' | 'language' | 'measurement' | 'security' | 'logout' | null;
 
 export const AccountSettingsTab: React.FC = () => {
+  const { user, logout } = useAuthStore();
+  const isGoogleAccount = user?.authProvider === 'GOOGLE' || user?.email?.includes('google');
+
+  // Extract name parts
+  const initialFirstName = user?.name ? user.name.split(' ')[0] : 'Ahmed';
+  const initialLastName = user?.name && user.name.split(' ').length > 1 ? user.name.split(' ').slice(1).join(' ') : 'Hassan';
+
   // Personal Profile State
-  const [firstName, setFirstName] = useState('Ahmed');
-  const [lastName, setLastName] = useState('Hassan');
-  const [userEmail, setUserEmail] = useState('ahmed.hassan@autoversus.com');
+  const [firstName, setFirstName] = useState(initialFirstName);
+  const [lastName, setLastName] = useState(initialLastName);
+  const [userEmail, setUserEmail] = useState(user?.email || 'ahmed.hassan@autoversus.com');
   const [userPhone, setUserPhone] = useState('+20 100 123 4567');
   const [userCity, setUserCity] = useState('Cairo');
   const [buyerPersona, setBuyerPersona] = useState<string>('Looking to Buy 🛒');
 
   // Secondary Email State
-  const [backupEmail, setBackupEmail] = useState('ahmed.backup@gmail.com');
-  const [emailVerified, setEmailVerified] = useState(true);
+  const [emailVerified] = useState(true);
   const [digestSubscription, setDigestSubscription] = useState(true);
 
   // Regional Preferences State
@@ -71,8 +78,10 @@ export const AccountSettingsTab: React.FC = () => {
   };
 
   const saveProfile = () => {
-    setFirstName(editFirstName);
-    setLastName(editLastName);
+    if (!isGoogleAccount) {
+      setFirstName(editFirstName);
+      setLastName(editLastName);
+    }
     setUserPhone(editPhone);
     setUserCity(editCity);
     setBuyerPersona(editPersona);
@@ -81,6 +90,10 @@ export const AccountSettingsTab: React.FC = () => {
   };
 
   const handleSendEmailVerification = () => {
+    if (isGoogleAccount) {
+      Alert.alert('Google Account', 'Primary email address is managed by Google and cannot be modified.');
+      return;
+    }
     if (!newEmailInput || newEmailInput !== confirmEmailInput) {
       Alert.alert('Invalid Email', 'Please make sure both email addresses match.');
       return;
@@ -107,7 +120,7 @@ export const AccountSettingsTab: React.FC = () => {
 
   const handleLogout = () => {
     setActiveModal(null);
-    useAuthStore.getState().logout();
+    logout();
   };
 
   return (
@@ -124,9 +137,16 @@ export const AccountSettingsTab: React.FC = () => {
         <View style={styles.profileInfo}>
           <View style={styles.nameRow}>
             <Text style={styles.userName}>{fullName}</Text>
-            <View style={styles.verifiedBadge}>
-              <Text style={styles.verifiedText}>VIP 🇪🇬</Text>
-            </View>
+            {isGoogleAccount ? (
+              <View style={styles.googleBadgePill}>
+                <Ionicons name="logo-google" size={12} color="#EA4335" />
+                <Text style={styles.googleBadgeText}>Google</Text>
+              </View>
+            ) : (
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedText}>VIP 🇪🇬</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.userEmail}>{userEmail}</Text>
           <Text style={styles.userRole}>{buyerPersona} · {userCity}</Text>
@@ -147,7 +167,15 @@ export const AccountSettingsTab: React.FC = () => {
             <View style={styles.rowLeft}>
               <Ionicons name="person-outline" size={20} color="#0F2942" style={styles.icon} />
               <View>
-                <Text style={styles.rowTitle}>Personal Profile</Text>
+                <View style={styles.inlineHeaderRow}>
+                  <Text style={styles.rowTitle}>Personal Profile</Text>
+                  {isGoogleAccount && (
+                    <View style={styles.googleInlineBadge}>
+                      <Ionicons name="logo-google" size={10} color="#EA4335" />
+                      <Text style={styles.googleInlineText}>Google Account</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.rowSubtitle}>
                   {fullName} · {userPhone}
                 </Text>
@@ -165,11 +193,18 @@ export const AccountSettingsTab: React.FC = () => {
               <View>
                 <View style={styles.inlineHeaderRow}>
                   <Text style={styles.rowTitle}>Email Address</Text>
-                  {emailVerified && (
-                    <View style={styles.verifiedPill}>
-                      <Ionicons name="checkmark-circle" size={12} color="#16A34A" />
-                      <Text style={styles.verifiedPillText}>Verified</Text>
+                  {isGoogleAccount ? (
+                    <View style={styles.googleInlineBadge}>
+                      <Ionicons name="logo-google" size={10} color="#EA4335" />
+                      <Text style={styles.googleInlineText}>Verified by Google</Text>
                     </View>
+                  ) : (
+                    emailVerified && (
+                      <View style={styles.verifiedPill}>
+                        <Ionicons name="checkmark-circle" size={12} color="#16A34A" />
+                        <Text style={styles.verifiedPillText}>Verified</Text>
+                      </View>
+                    )
                   )}
                 </View>
                 <Text style={styles.rowSubtitle}>{userEmail}</Text>
@@ -323,28 +358,54 @@ export const AccountSettingsTab: React.FC = () => {
                       </Text>
                     </View>
                     <View>
-                      <Text style={styles.avatarBannerTitle}>Profile Avatar</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.avatarBannerTitle}>Profile Avatar</Text>
+                        {isGoogleAccount && (
+                          <View style={styles.googleInlineBadge}>
+                            <Ionicons name="logo-google" size={10} color="#EA4335" />
+                            <Text style={styles.googleInlineText}>Google</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.avatarBannerSub}>VIP Automotive Member</Text>
                     </View>
                   </View>
 
-                  {/* First & Last Name */}
+                  {/* Google Uneditable Notice Banner */}
+                  {isGoogleAccount && (
+                    <View style={styles.googleLockedBanner}>
+                      <Ionicons name="lock-closed" size={16} color="#0F2942" />
+                      <Text style={styles.googleLockedText}>
+                        First Name, Last Name, and Primary Email are synced & locked by your Google Account.
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* First & Last Name Inputs (Uneditable if Google) */}
                   <View style={styles.flexRowInputs}>
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                      <Text style={styles.inputLabel}>First Name</Text>
+                      <View style={styles.labelWithGoogleRow}>
+                        <Text style={styles.inputLabel}>First Name</Text>
+                        {isGoogleAccount && <Ionicons name="logo-google" size={12} color="#EA4335" />}
+                      </View>
                       <TextInput
-                        style={styles.textInput}
+                        style={[styles.textInput, isGoogleAccount && styles.disabledInput]}
                         value={editFirstName}
                         onChangeText={setEditFirstName}
+                        editable={!isGoogleAccount}
                       />
                     </View>
 
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                      <Text style={styles.inputLabel}>Last Name</Text>
+                      <View style={styles.labelWithGoogleRow}>
+                        <Text style={styles.inputLabel}>Last Name</Text>
+                        {isGoogleAccount && <Ionicons name="logo-google" size={12} color="#EA4335" />}
+                      </View>
                       <TextInput
-                        style={styles.textInput}
+                        style={[styles.textInput, isGoogleAccount && styles.disabledInput]}
                         value={editLastName}
                         onChangeText={setEditLastName}
+                        editable={!isGoogleAccount}
                       />
                     </View>
                   </View>
@@ -430,12 +491,17 @@ export const AccountSettingsTab: React.FC = () => {
                     <View style={styles.verifiedEmailHeader}>
                       <Ionicons name="mail" size={22} color="#0F2942" />
                       <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={styles.verifiedEmailLabel}>Primary Account Email</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={styles.verifiedEmailLabel}>Primary Account Email</Text>
+                          {isGoogleAccount && <Ionicons name="logo-google" size={12} color="#EA4335" />}
+                        </View>
                         <Text style={styles.verifiedEmailValue}>{userEmail}</Text>
                       </View>
                       <View style={styles.greenCheckBadge}>
                         <Ionicons name="shield-checkmark" size={14} color="#16A34A" />
-                        <Text style={styles.greenCheckText}>Verified</Text>
+                        <Text style={styles.greenCheckText}>
+                          {isGoogleAccount ? 'Google Verified' : 'Verified'}
+                        </Text>
                       </View>
                     </View>
                     <Text style={styles.verifiedEmailSub}>
@@ -444,52 +510,65 @@ export const AccountSettingsTab: React.FC = () => {
                   </View>
 
                   {/* Change Email Section */}
-                  <Text style={styles.subHeaderTitle}>Change Primary Email</Text>
+                  <Text style={styles.subHeaderTitle}>
+                    {isGoogleAccount ? 'Primary Email Address' : 'Change Primary Email'}
+                  </Text>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>New Email Address</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={newEmailInput}
-                      onChangeText={setNewEmailInput}
-                      placeholder="e.g. name@domain.com"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Confirm New Email</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={confirmEmailInput}
-                      onChangeText={setConfirmEmailInput}
-                      placeholder="Re-enter new email"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  {!otpSent ? (
-                    <TouchableOpacity style={styles.outlineActionButton} onPress={handleSendEmailVerification}>
-                      <Text style={styles.outlineActionText}>Send Verification OTP Code</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.otpSection}>
-                      <Text style={styles.otpNotice}>
-                        Enter 6-digit code sent to <Text style={{ fontWeight: '700' }}>{newEmailInput}</Text>
+                  {isGoogleAccount ? (
+                    <View style={styles.googleLockedBanner}>
+                      <Ionicons name="logo-google" size={16} color="#EA4335" />
+                      <Text style={styles.googleLockedText}>
+                        Your primary email address is verified and managed directly by your Google Account.
                       </Text>
-                      <View style={styles.otpRow}>
-                        {['4', '8', '2', '9', '1', '0'].map((digit, i) => (
-                          <View key={i} style={styles.otpBox}>
-                            <Text style={styles.otpDigit}>{digit}</Text>
-                          </View>
-                        ))}
-                      </View>
-                      <TouchableOpacity style={styles.saveButton} onPress={confirmNewEmail}>
-                        <Text style={styles.saveButtonText}>Confirm & Update Email</Text>
-                      </TouchableOpacity>
                     </View>
+                  ) : (
+                    <>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>New Email Address</Text>
+                        <TextInput
+                          style={styles.textInput}
+                          value={newEmailInput}
+                          onChangeText={setNewEmailInput}
+                          placeholder="e.g. name@domain.com"
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Confirm New Email</Text>
+                        <TextInput
+                          style={styles.textInput}
+                          value={confirmEmailInput}
+                          onChangeText={setConfirmEmailInput}
+                          placeholder="Re-enter new email"
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+
+                      {!otpSent ? (
+                        <TouchableOpacity style={styles.outlineActionButton} onPress={handleSendEmailVerification}>
+                          <Text style={styles.outlineActionText}>Send Verification OTP Code</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={styles.otpSection}>
+                          <Text style={styles.otpNotice}>
+                            Enter 6-digit code sent to <Text style={{ fontWeight: '700' }}>{newEmailInput}</Text>
+                          </Text>
+                          <View style={styles.otpRow}>
+                            {['4', '8', '2', '9', '1', '0'].map((digit, i) => (
+                              <View key={i} style={styles.otpBox}>
+                                <Text style={styles.otpDigit}>{digit}</Text>
+                              </View>
+                            ))}
+                          </View>
+                          <TouchableOpacity style={styles.saveButton} onPress={confirmNewEmail}>
+                            <Text style={styles.saveButtonText}>Confirm & Update Email</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </>
                   )}
 
                   {/* Email Subscriptions */}
@@ -653,31 +732,42 @@ export const AccountSettingsTab: React.FC = () => {
                 <View style={styles.grabBar} />
                 <Text style={styles.modalTitle}>Security & Password</Text>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Current Password</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    secureTextEntry
-                    value={currentPassword}
-                    onChangeText={setCurrentPassword}
-                    placeholder="••••••••"
-                  />
-                </View>
+                {isGoogleAccount ? (
+                  <View style={styles.googleLockedBanner}>
+                    <Ionicons name="logo-google" size={16} color="#EA4335" />
+                    <Text style={styles.googleLockedText}>
+                      Your account uses Google Authentication. Security and password settings are managed directly through Google.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>Current Password</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        secureTextEntry
+                        value={currentPassword}
+                        onChangeText={setCurrentPassword}
+                        placeholder="••••••••"
+                      />
+                    </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>New Password</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    secureTextEntry
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    placeholder="Enter new password"
-                  />
-                </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.inputLabel}>New Password</Text>
+                      <TextInput
+                        style={styles.textInput}
+                        secureTextEntry
+                        value={newPassword}
+                        onChangeText={setNewPassword}
+                        placeholder="Enter new password"
+                      />
+                    </View>
 
-                <TouchableOpacity style={styles.saveButton} onPress={savePassword}>
-                  <Text style={styles.saveButtonText}>Update Password</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.saveButton} onPress={savePassword}>
+                      <Text style={styles.saveButtonText}>Update Password</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -770,6 +860,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  googleBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  googleBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0F2942',
+  },
   verifiedBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: 8,
@@ -808,13 +912,17 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     letterSpacing: 1,
     marginBottom: 10,
-    paddingLeft: 4,
   },
   cardGroup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
     overflow: 'hidden',
   },
   rowItem: {
@@ -832,29 +940,45 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 14,
   },
-  rowTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F2942',
-  },
   inlineHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  googleInlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    gap: 4,
+  },
+  googleInlineText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#991B1B',
+  },
   verifiedPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     backgroundColor: '#DCFCE7',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
+    gap: 3,
   },
   verifiedPillText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: '#16A34A',
+    color: '#15803D',
   },
   rowSubtitle: {
     fontSize: 13,
@@ -864,7 +988,7 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: '#4B5563',
   },
   rowDivider: {
     height: 1,
@@ -875,9 +999,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 20,
     paddingVertical: 14,
-    borderRadius: 24,
     gap: 8,
     marginTop: 8,
   },
@@ -886,28 +1012,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#C92A2A',
   },
-
-  /* Modals */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalSheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    paddingTop: 12,
     paddingHorizontal: 24,
-    paddingBottom: 36,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
   grabBar: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: '#E5E7EB',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
@@ -919,28 +1043,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 16,
+    gap: 14,
   },
   avatarCircleLarge: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#0F2942',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
   },
   avatarTextLarge: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '800',
+    color: '#FFFFFF',
   },
   avatarBannerTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#0F2942',
   },
@@ -948,25 +1070,74 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
   },
+  googleLockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+    marginBottom: 16,
+    gap: 10,
+  },
+  googleLockedText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E40AF',
+    flex: 1,
+    lineHeight: 16,
+  },
+  labelWithGoogleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   flexRowInputs: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 14,
+  },
+  inputGroup: {
+    gap: 6,
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  textInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 46,
+    fontSize: 14,
+    color: '#0F2942',
+  },
+  disabledInput: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    color: '#64748B',
   },
   phoneInputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   countryCodeBadge: {
     backgroundColor: '#F1F5F9',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    height: 46,
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   countryCodeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#0F2942',
   },
@@ -976,9 +1147,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   personaChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
   },
   personaChipActive: {
@@ -986,26 +1157,39 @@ const styles = StyleSheet.create({
     borderColor: '#0F2942',
   },
   personaChipInactive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
     borderColor: '#E2E8F0',
   },
   personaChipText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   personaChipTextActive: {
     color: '#FFFFFF',
   },
   personaChipTextInactive: {
-    color: '#475569',
+    color: '#4B5563',
+  },
+  saveButton: {
+    backgroundColor: '#0F2942',
+    paddingVertical: 14,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   verifiedEmailCard: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    marginBottom: 20,
   },
   verifiedEmailHeader: {
     flexDirection: 'row',
@@ -1014,8 +1198,8 @@ const styles = StyleSheet.create({
   },
   verifiedEmailLabel: {
     fontSize: 12,
+    fontWeight: '700',
     color: '#64748B',
-    fontWeight: '600',
   },
   verifiedEmailValue: {
     fontSize: 15,
@@ -1025,70 +1209,70 @@ const styles = StyleSheet.create({
   greenCheckBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     backgroundColor: '#DCFCE7',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    gap: 4,
   },
   greenCheckText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#16A34A',
+    color: '#15803D',
   },
   verifiedEmailSub: {
     fontSize: 12,
     color: '#64748B',
-    lineHeight: 18,
+    lineHeight: 16,
   },
   subHeaderTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: '#0F2942',
     marginBottom: 12,
   },
   outlineActionButton: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: '#0F2942',
-    paddingVertical: 14,
-    borderRadius: 24,
+    borderRadius: 18,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+    marginVertical: 12,
   },
   outlineActionText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0F2942',
   },
   otpSection: {
-    marginTop: 12,
-    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 12,
   },
   otpNotice: {
     fontSize: 13,
-    color: '#475569',
-    marginBottom: 14,
-    textAlign: 'center',
+    color: '#4B5563',
+    marginBottom: 12,
   },
   otpRow: {
     flexDirection: 'row',
-    gap: 10,
+    justifyContent: 'center',
+    gap: 8,
     marginBottom: 16,
   },
   otpBox: {
-    width: 44,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    width: 38,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
     borderColor: '#0F2942',
     alignItems: 'center',
     justifyContent: 'center',
   },
   otpDigit: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: '#0F2942',
   },
@@ -1099,8 +1283,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     padding: 14,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   toggleRowTitle: {
     fontSize: 14,
@@ -1110,40 +1292,6 @@ const styles = StyleSheet.create({
   toggleRowSub: {
     fontSize: 12,
     color: '#64748B',
-    marginTop: 2,
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 6,
-  },
-  textInput: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#0F2942',
-  },
-  saveButton: {
-    backgroundColor: '#0F2942',
-    paddingVertical: 14,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    width: '100%',
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
   },
   radioRow: {
     flexDirection: 'row',
@@ -1152,46 +1300,43 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 16,
+    marginBottom: 8,
     backgroundColor: '#F8FAFC',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   radioRowSelected: {
-    borderColor: '#0F2942',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
   },
   radioText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#475569',
+    color: '#374151',
   },
   radioTextSelected: {
     fontWeight: '700',
     color: '#0F2942',
   },
-
-  /* Dialog */
   dialogCard: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 30,
-    marginBottom: 'auto',
-    marginTop: 'auto',
     borderRadius: 28,
     padding: 24,
+    marginHorizontal: 32,
     alignItems: 'center',
+    marginTop: 'auto',
+    marginBottom: 'auto',
   },
   logoutIconCircle: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   dialogTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: '#0F2942',
     marginBottom: 8,
@@ -1201,36 +1346,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
     textAlign: 'center',
+    marginBottom: 20,
     lineHeight: 20,
-    marginBottom: 24,
   },
   dialogButtonsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 12,
     width: '100%',
   },
   dialogCancelBtn: {
     flex: 1,
+    backgroundColor: '#F3F4F6',
     paddingVertical: 14,
-    borderRadius: 24,
-    backgroundColor: '#F1F5F9',
+    borderRadius: 20,
     alignItems: 'center',
   },
   dialogCancelText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#475569',
+    color: '#4B5563',
   },
   dialogConfirmBtn: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 24,
     backgroundColor: '#C92A2A',
+    paddingVertical: 14,
+    borderRadius: 20,
     alignItems: 'center',
   },
   dialogConfirmText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },

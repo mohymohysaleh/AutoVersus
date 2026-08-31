@@ -12,6 +12,7 @@ export interface UserProfile {
   preferredCurrency: string;
   preferredLang: 'EN' | 'AR';
   measurementSystem: 'METRIC' | 'IMPERIAL';
+  authProvider?: 'LOCAL' | 'GOOGLE';
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +45,13 @@ export interface RegisterUserDto {
 export interface LoginUserDto {
   email: string;
   password: string;
+}
+
+export interface GoogleAuthDto {
+  email: string;
+  name?: string;
+  idToken?: string;
+  avatarUrl?: string;
 }
 
 export interface AuthValidationErrors {

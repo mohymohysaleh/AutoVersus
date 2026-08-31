@@ -6,6 +6,7 @@ import {
   AuthTokens,
   RegisterUserDto,
   LoginUserDto,
+  GoogleAuthDto,
 } from '../types/auth.types';
 
 const ACCESS_TOKEN_KEY = 'autoversus_access_token';
@@ -60,6 +61,7 @@ interface AuthState {
   // Actions
   login: (dto: LoginUserDto) => Promise<void>;
   register: (dto: RegisterUserDto) => Promise<void>;
+  loginWithGoogle: (dto: GoogleAuthDto) => Promise<void>;
   logout: () => void;
   loadUserProfile: () => Promise<void>;
   clearError: () => void;
@@ -77,7 +79,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await authApi.login(dto);
       tokenStorage.setTokens(data.tokens);
       set({
-        user: data.user,
+        user: { ...data.user, authProvider: 'LOCAL' },
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -97,7 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await authApi.register(dto);
       tokenStorage.setTokens(data.tokens);
       set({
-        user: data.user,
+        user: { ...data.user, authProvider: 'LOCAL' },
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -106,6 +108,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isLoading: false,
         error: err.message || 'Registration failed. Please try again.',
+      });
+      throw err;
+    }
+  },
+
+  loginWithGoogle: async (dto: GoogleAuthDto) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await authApi.googleLogin(dto);
+      tokenStorage.setTokens(data.tokens);
+      set({
+        user: { ...data.user, authProvider: 'GOOGLE' },
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+    } catch (err: any) {
+      set({
+        isLoading: false,
+        error: err.message || 'Google Sign-In failed. Please try again.',
       });
       throw err;
     }
@@ -134,7 +156,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
     } catch (err: any) {
-      // Token might be invalid or expired
       tokenStorage.clearTokens();
       set({
         user: null,
