@@ -5,80 +5,31 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  FlatList,
   StyleSheet,
   StatusBar,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HeroArticleCard } from '../components/HeroArticleCard';
 import { ArticleListItem } from '../components/ArticleListItem';
 import { NewsArticleItem } from '../types/news.types';
 import { router } from 'expo-router';
+import {
+  SHIFT_FEATURED_ARTICLE,
+  SHIFT_ARTICLES_LIST,
+  ShiftNewsArticle,
+} from '../data/shift-news.data';
 
-const MOCK_FEATURED_ARTICLE: NewsArticleItem = {
-  id: 'feat-1',
-  title: '2027 EV Battery Breakthrough Explained',
-  slug: '2027-ev-battery-breakthrough-explained',
-  category: 'Electric',
-  summary:
-    'Solid-state batteries have long been described as the next great leap for electric cars. A new manufacturing process may finally make that promise practical at scale.',
-  coverImage:
-    'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=80',
-  authorName: 'Amelia Morgan',
-  publishedDate: 'August 25, 2026',
-  readTime: '4 min read',
-  isFeatured: true,
-};
-
-const MOCK_LATEST_ARTICLES: NewsArticleItem[] = [
-  {
-    id: 'art-1',
-    title: 'The family SUV finally gets smarter',
-    slug: 'family-suv-gets-smarter',
-    category: 'First Drives',
-    summary:
-      'We test drive the latest hybrid crossover arriving in the Middle East with level-3 autonomous parking and active suspension.',
-    coverImage:
-      'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
-    authorName: 'Tarek Al-Mansoor',
-    publishedDate: 'Aug 22, 2026',
-    readTime: '3 min read',
-  },
-  {
-    id: 'art-2',
-    title: 'Five compact EVs worth waiting for',
-    slug: 'five-compact-evs-worth-waiting-for',
-    category: 'Electric',
-    summary:
-      'From sub-$25k city hatchbacks to long-range AWD crossovers, here are the most anticipated electric cars launching next year.',
-    coverImage:
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
-    authorName: 'Amelia Morgan',
-    publishedDate: 'Aug 20, 2026',
-    readTime: '5 min read',
-  },
-  {
-    id: 'art-3',
-    title: 'Egyptian Automotive Market: Q3 Price Overview',
-    slug: 'egypt-market-q3-price-overview',
-    category: 'Price Tracker',
-    summary:
-      'Official MSRP changes vs. dealer overprice adjustments across Cairo showrooms for top sedan and crossover trims.',
-    coverImage:
-      'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80',
-    authorName: 'Hassan Sherif',
-    publishedDate: 'Aug 18, 2026',
-    readTime: '6 min read',
-  },
-];
-
-const CATEGORIES = ['All', 'First Drives', 'Industry News', 'Electric', 'Price Tracker'];
+const CATEGORIES = ['الكل', 'محلية', 'أسعار السيارات', 'عالمية', 'تكنولوجيا', 'تقارير'];
 
 export const NewsScreen: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeCategory, setActiveCategory] = useState('الكل');
 
-  const handleArticlePress = (article: NewsArticleItem) => {
+  const filteredArticles =
+    activeCategory === 'الكل'
+      ? SHIFT_ARTICLES_LIST
+      : SHIFT_ARTICLES_LIST.filter((art) => art.category === activeCategory);
+
+  const handleArticlePress = (article: ShiftNewsArticle | NewsArticleItem) => {
     router.push({
       pathname: '/news/[slug]',
       params: { slug: article.slug },
@@ -92,8 +43,8 @@ export const NewsScreen: React.FC = () => {
       {/* Top Header Row */}
       <View style={styles.topHeader}>
         <View>
-          <Text style={styles.editorialTag}>AUTOVERSUS EDITORIAL</Text>
-          <Text style={styles.headerTitle}>Automotive News & Reviews</Text>
+          <Text style={styles.editorialTag}>SHIFT-EG AUTOMOTIVE FEED</Text>
+          <Text style={styles.headerTitle}>أخبار وتغطيات السيارات</Text>
         </View>
 
         <TouchableOpacity style={styles.searchIconButton} activeOpacity={0.7}>
@@ -127,19 +78,19 @@ export const NewsScreen: React.FC = () => {
 
         {/* Hero Featured Article Card */}
         <HeroArticleCard
-          article={MOCK_FEATURED_ARTICLE}
-          onPress={() => handleArticlePress(MOCK_FEATURED_ARTICLE)}
+          article={SHIFT_FEATURED_ARTICLE}
+          onPress={() => handleArticlePress(SHIFT_FEATURED_ARTICLE)}
         />
 
         {/* Latest Stories Section Header */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Latest Stories</Text>
-          <Text style={styles.articleCount}>{MOCK_LATEST_ARTICLES.length} articles</Text>
+          <Text style={styles.sectionTitle}>أحدث الأخبار والمعارض</Text>
+          <Text style={styles.articleCount}>{filteredArticles.length} خبر</Text>
         </View>
 
         {/* Vertical List of News Items */}
         <View style={styles.listContainer}>
-          {MOCK_LATEST_ARTICLES.map((article) => (
+          {filteredArticles.map((article) => (
             <ArticleListItem
               key={article.id}
               article={article}
@@ -156,26 +107,26 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingTop: 16,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
   },
   editorialTag: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: '#C92A2A',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     marginBottom: 2,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#0F2942',
   },
   searchIconButton: {
@@ -187,53 +138,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 24,
   },
   categoriesContainer: {
     paddingHorizontal: 20,
-    gap: 10,
-    marginTop: 8,
-    marginBottom: 20,
+    paddingVertical: 12,
+    gap: 8,
   },
   chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   chipActive: {
     backgroundColor: '#0F2942',
   },
   chipInactive: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
   },
   chipText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   chipTextActive: {
     color: '#FFFFFF',
   },
   chipTextInactive: {
-    color: '#6B7280',
+    color: '#4B5563',
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginBottom: 16,
+    marginTop: 20,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#0F2942',
   },
   articleCount: {
     fontSize: 13,
-    color: '#6B7280',
     fontWeight: '600',
+    color: '#6B7280',
   },
   listContainer: {
     paddingHorizontal: 20,

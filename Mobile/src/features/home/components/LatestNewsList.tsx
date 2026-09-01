@@ -8,6 +8,11 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  SHIFT_FEATURED_ARTICLE,
+  SHIFT_ARTICLES_LIST,
+  ShiftNewsArticle,
+} from '../../news/data/shift-news.data';
 
 export interface NewsArticleCardItem {
   id: string;
@@ -19,52 +24,14 @@ export interface NewsArticleCardItem {
   slug: string;
 }
 
-const HOME_NEWS_ARTICLES: NewsArticleCardItem[] = [
-  {
-    id: 'news-1',
-    title: '2027 EV Battery Breakthrough Explained',
-    category: 'Electric',
-    publishedDate: 'Aug 25, 2026',
-    readTime: '4 min read',
-    coverImage:
-      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-    slug: '2027-ev-battery-breakthrough-explained',
-  },
-  {
-    id: 'news-2',
-    title: 'Egypt MSRP Price Watch: Q3 2026 Agency Shift',
-    category: 'MSRP Watch',
-    publishedDate: 'Aug 23, 2026',
-    readTime: '5 min read',
-    coverImage:
-      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80',
-    slug: 'egypt-msrp-price-watch-q3-2026',
-  },
-  {
-    id: 'news-3',
-    title: 'The Family Hybrid Crossover Arriving in MENA',
-    category: 'First Drives',
-    publishedDate: 'Aug 22, 2026',
-    readTime: '3 min read',
-    coverImage:
-      'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
-    slug: 'family-suv-gets-smarter',
-  },
-  {
-    id: 'news-4',
-    title: 'Five Compact EVs Worth Waiting For in 2027',
-    category: 'Electric',
-    publishedDate: 'Aug 20, 2026',
-    readTime: '5 min read',
-    coverImage:
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
-    slug: 'five-compact-evs-worth-waiting-for',
-  },
+const HOME_NEWS_ARTICLES: ShiftNewsArticle[] = [
+  SHIFT_FEATURED_ARTICLE,
+  ...SHIFT_ARTICLES_LIST,
 ];
 
 interface LatestNewsListProps {
   onSeeAllPress?: () => void;
-  onArticlePress?: (article: NewsArticleCardItem) => void;
+  onArticlePress?: (article: ShiftNewsArticle | NewsArticleCardItem) => void;
 }
 
 export const LatestNewsList: React.FC<LatestNewsListProps> = ({
@@ -85,8 +52,8 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
       {/* Section Header */}
       <View nativeID="home-latest-news-header" style={styles.headerRow}>
         <View>
-          <Text style={styles.newsLabel}>AUTOMOTIVE NEWS</Text>
-          <Text style={styles.title}>Latest Insights</Text>
+          <Text style={styles.newsLabel}>SHIFT-EG AUTOMOTIVE FEED</Text>
+          <Text style={styles.title}>أحدث أخبار السيارات</Text>
         </View>
         <TouchableOpacity
           testID="home-see-all-news-button"
@@ -94,7 +61,7 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
           onPress={onSeeAllPress}
           activeOpacity={0.7}
         >
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>كل الأخبار</Text>
         </TouchableOpacity>
       </View>
 
@@ -171,19 +138,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   newsLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#6B7280',
-    letterSpacing: 1,
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#C92A2A',
+    letterSpacing: 1.1,
     marginBottom: 2,
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: '800',
+    color: '#0F2942',
   },
   seeAllText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#C92A2A',
   },
@@ -192,7 +159,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   card: {
-    width: 260,
+    width: 270,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
@@ -253,12 +220,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#111827',
-    lineHeight: 20,
+    lineHeight: 21,
     marginBottom: 8,
+    textAlign: 'right',
   },
   metaText: {
     fontSize: 12,
     color: '#6B7280',
     fontWeight: '500',
+    textAlign: 'right',
   },
 });

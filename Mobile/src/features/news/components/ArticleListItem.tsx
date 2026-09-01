@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NewsArticleItem } from '../types/news.types';
+import { ShiftNewsArticle } from '../data/shift-news.data';
 
 interface ArticleListItemProps {
-  article: NewsArticleItem;
+  article: NewsArticleItem | ShiftNewsArticle;
   onPress?: () => void;
 }
 

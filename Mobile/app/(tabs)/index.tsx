@@ -23,7 +23,7 @@ export default function HomeScreen() {
     });
   };
 
-  const handleArticlePress = (article: NewsArticleCardItem) => {
+  const handleArticlePress = (article: NewsArticleCardItem | { slug: string }) => {
     router.push({
       pathname: '/news/[slug]',
       params: { slug: article.slug },

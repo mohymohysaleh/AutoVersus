@@ -12,6 +12,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import {
+  SHIFT_FEATURED_ARTICLE,
+  SHIFT_ARTICLES_LIST,
+  ShiftNewsArticle,
+} from '../data/shift-news.data';
 
 interface ArticleDetailsScreenProps {
   slug?: string;
@@ -19,6 +24,11 @@ interface ArticleDetailsScreenProps {
 
 export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug }) => {
   const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1);
+
+  // Find article by slug or fallback to featured Shift-EG article
+  const article: ShiftNewsArticle =
+    [SHIFT_FEATURED_ARTICLE, ...SHIFT_ARTICLES_LIST].find((a) => a.slug === slug) ||
+    SHIFT_FEATURED_ARTICLE;
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -30,6 +40,14 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
 
   const toggleFontSize = () => {
     setFontSizeMultiplier((prev) => (prev === 1 ? 1.15 : 1));
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
   };
 
   return (
@@ -62,9 +80,7 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
         {/* Full-Bleed Cover Image */}
         <View style={styles.coverImageContainer}>
           <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
-            }}
+            source={{ uri: article.coverImage }}
             style={styles.coverImage}
             resizeMode="cover"
           />
@@ -74,22 +90,22 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
         <View style={styles.articleSheet}>
           {/* Category Red Badge */}
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>ELECTRIC</Text>
+            <Text style={styles.categoryText}>{article.category.toUpperCase()}</Text>
           </View>
 
           {/* Article Title */}
-          <Text style={[styles.articleTitle, { fontSize: 26 * fontSizeMultiplier }]}>
-            2027 EV Battery Breakthrough Explained
+          <Text style={[styles.articleTitle, { fontSize: 24 * fontSizeMultiplier }]}>
+            {article.title}
           </Text>
 
           {/* Author & Meta Row */}
           <View style={styles.authorRow}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>AM</Text>
+              <Text style={styles.avatarText}>{getInitials(article.authorName)}</Text>
             </View>
             <View style={styles.authorInfo}>
-              <Text style={styles.authorName}>Amelia Morgan</Text>
-              <Text style={styles.metaText}>August 25, 2026 · 4 min read</Text>
+              <Text style={styles.authorName}>{article.authorName}</Text>
+              <Text style={styles.metaText}>{article.publishedDate} · {article.readTime}</Text>
             </View>
           </View>
 
@@ -97,28 +113,23 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
 
           {/* Article Lead Paragraph */}
           <Text style={[styles.leadParagraph, { fontSize: 16 * fontSizeMultiplier }]}>
-            Solid-state batteries have long been described as the next great leap for electric cars. A new
-            manufacturing process may finally make that promise practical at scale.
+            {article.summary}
           </Text>
 
           {/* Section Subheading */}
-          <Text style={[styles.subheading, { fontSize: 20 * fontSizeMultiplier }]}>
-            More range, less waiting
+          <Text style={[styles.subheading, { fontSize: 19 * fontSizeMultiplier }]}>
+            التفاصيل والتغطية الصحفية
           </Text>
 
           {/* Article Body Paragraph */}
           <Text style={[styles.bodyParagraph, { fontSize: 16 * fontSizeMultiplier }]}>
-            The new cells replace the liquid electrolyte found in today's lithium-ion packs with a stable
-            solid layer. Engineers say this allows more energy to fit into a smaller package while
-            improving heat management and reducing charging times by over 60 percent.
+            {article.fullContent}
           </Text>
 
-          {/* Article Body Paragraph 2 */}
-          <Text style={[styles.bodyParagraph, { fontSize: 16 * fontSizeMultiplier }]}>
-            In early trials with prototype electric sedans, testing demonstrated continuous ranges exceeding
-            850 kilometers on a single charge. Regional automakers in MENA and Europe are already preparing
-            pilot integration for model year 2027.
-          </Text>
+          {/* Source Attribution Badge */}
+          <View style={styles.sourceBox}>
+            <Text style={styles.sourceBoxText}>المصدر: Shift-EG (شيفت مصر)</Text>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -218,9 +229,10 @@ const styles = StyleSheet.create({
     color: '#0F2942',
     lineHeight: 34,
     marginBottom: 20,
+    textAlign: 'right',
   },
   authorRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -231,7 +243,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F2942',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginLeft: 12,
   },
   avatarText: {
     color: '#FFFFFF',
@@ -240,6 +252,7 @@ const styles = StyleSheet.create({
   },
   authorInfo: {
     justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   authorName: {
     fontSize: 16,
@@ -257,20 +270,37 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   leadParagraph: {
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#374151',
     lineHeight: 26,
     marginBottom: 24,
+    textAlign: 'right',
   },
   subheading: {
     fontWeight: '800',
     color: '#0F2942',
     marginBottom: 12,
+    textAlign: 'right',
   },
   bodyParagraph: {
     fontWeight: '400',
     color: '#4B5563',
     lineHeight: 26,
-    marginBottom: 16,
+    marginBottom: 20,
+    textAlign: 'right',
+  },
+  sourceBox: {
+    marginTop: 16,
+    backgroundColor: '#F9FAFB',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  sourceBoxText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6B7280',
   },
 });

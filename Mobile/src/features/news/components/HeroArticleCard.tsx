@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { NewsArticleItem } from '../types/news.types';
+import { ShiftNewsArticle } from '../data/shift-news.data';
 
 interface HeroArticleCardProps {
-  article: NewsArticleItem;
+  article: NewsArticleItem | ShiftNewsArticle;
   onPress?: () => void;
 }
 
