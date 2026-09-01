@@ -3,6 +3,8 @@ import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
+import { useLanguage } from '../../../shared/context/LanguageContext';
+
 interface HeaderProps {
   onNotificationPress?: () => void;
   onLanguageToggle?: () => void;
@@ -12,8 +14,14 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onNotificationPress,
   onLanguageToggle,
-  currentLang = 'EN',
 }) => {
+  const { language, toggleLanguage } = useLanguage();
+
+  const handlePress = () => {
+    toggleLanguage();
+    onLanguageToggle?.();
+  };
+
   return (
     <View nativeID="home-header-container" testID="home-header-container" style={styles.container}>
       {/* Brand Logo - Pressing opens Onboarding Tour */}
@@ -51,11 +59,11 @@ export const Header: React.FC<HeaderProps> = ({
           testID="home-language-button"
           accessibilityLabel="Switch Language"
           style={styles.langPill}
-          onPress={onLanguageToggle}
+          onPress={handlePress}
           activeOpacity={0.7}
         >
           <Ionicons name="language-outline" size={16} color="#374151" />
-          <Text style={styles.langText}>{currentLang}</Text>
+          <Text style={styles.langText}>{language === 'EN' ? 'العربية' : 'English'}</Text>
         </TouchableOpacity>
 
         {/* Auth / Sign In Button */}

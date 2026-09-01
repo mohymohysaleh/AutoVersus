@@ -2,6 +2,8 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useLanguage } from '../../../shared/context/LanguageContext';
+
 interface SearchBarProps {
   value?: string;
   onChangeText?: (text: string) => void;
@@ -13,6 +15,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   onFilterPress,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <View nativeID="home-search-bar-container" testID="home-search-bar-container" style={styles.container}>
       {/* Input Box */}
@@ -23,7 +27,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           testID="home-search-text-input"
           accessibilityLabel="Search vehicle catalog"
           style={styles.input}
-          placeholder="Search make, model, or type"
+          placeholder={t('home.searchPlaceholder')}
           placeholderTextColor="#9CA3AF"
           value={value}
           onChangeText={onChangeText}

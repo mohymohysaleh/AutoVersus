@@ -17,17 +17,40 @@ import {
   SHIFT_FEATURED_ARTICLE,
   SHIFT_ARTICLES_LIST,
   ShiftNewsArticle,
+  getLocalizedArticle,
 } from '../data/shift-news.data';
-
-const CATEGORIES = ['الكل', 'محلية', 'أسعار السيارات', 'عالمية', 'تكنولوجيا', 'تقارير'];
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export const NewsScreen: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('الكل');
+  const { t, language } = useLanguage();
+  const [activeCategory, setActiveCategory] = useState<string>('ALL');
+
+  const categories = [
+    { key: 'ALL', label: language === 'EN' ? 'All' : 'الكل' },
+    { key: 'LOCAL', label: language === 'EN' ? 'Local' : 'محلية' },
+    { key: 'PRICES', label: language === 'EN' ? 'Car Prices' : 'أسعار السيارات' },
+    { key: 'GLOBAL', label: language === 'EN' ? 'Global' : 'عالمية' },
+    { key: 'TECH', label: language === 'EN' ? 'Technology' : 'تكنولوجيا' },
+    { key: 'REPORTS', label: language === 'EN' ? 'Reports' : 'تقارير' },
+  ];
+
+  const featuredArticle = getLocalizedArticle(SHIFT_FEATURED_ARTICLE, language);
+
+  const localizedArticles = SHIFT_ARTICLES_LIST.map((art) =>
+    getLocalizedArticle(art, language)
+  );
 
   const filteredArticles =
-    activeCategory === 'الكل'
-      ? SHIFT_ARTICLES_LIST
-      : SHIFT_ARTICLES_LIST.filter((art) => art.category === activeCategory);
+    activeCategory === 'ALL'
+      ? localizedArticles
+      : localizedArticles.filter((art) => {
+          if (activeCategory === 'LOCAL') return art.categoryEn === 'Local News';
+          if (activeCategory === 'PRICES') return art.categoryEn === 'Car Prices';
+          if (activeCategory === 'GLOBAL') return art.categoryEn === 'Global News';
+          if (activeCategory === 'TECH') return art.categoryEn === 'Technology';
+          if (activeCategory === 'REPORTS') return art.categoryEn === 'Reports';
+          return true;
+        });
 
   const handleArticlePress = (article: ShiftNewsArticle | NewsArticleItem) => {
     router.push({
@@ -43,8 +66,8 @@ export const NewsScreen: React.FC = () => {
       {/* Top Header Row */}
       <View style={styles.topHeader}>
         <View>
-          <Text style={styles.editorialTag}>SHIFT-EG AUTOMOTIVE FEED</Text>
-          <Text style={styles.headerTitle}>أخبار وتغطيات السيارات</Text>
+          <Text style={styles.editorialTag}>{t('news.editorialTag')}</Text>
+          <Text style={styles.headerTitle}>{t('news.headerTitle')}</Text>
         </View>
 
         <TouchableOpacity style={styles.searchIconButton} activeOpacity={0.7}>
@@ -59,17 +82,17 @@ export const NewsScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesContainer}
         >
-          {CATEGORIES.map((cat) => {
-            const isActive = cat === activeCategory;
+          {categories.map((cat) => {
+            const isActive = cat.key === activeCategory;
             return (
               <TouchableOpacity
-                key={cat}
+                key={cat.key}
                 style={[styles.chip, isActive ? styles.chipActive : styles.chipInactive]}
-                onPress={() => setActiveCategory(cat)}
+                onPress={() => setActiveCategory(cat.key)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextInactive]}>
-                  {cat}
+                  {cat.label}
                 </Text>
               </TouchableOpacity>
             );
@@ -78,14 +101,14 @@ export const NewsScreen: React.FC = () => {
 
         {/* Hero Featured Article Card */}
         <HeroArticleCard
-          article={SHIFT_FEATURED_ARTICLE}
-          onPress={() => handleArticlePress(SHIFT_FEATURED_ARTICLE)}
+          article={featuredArticle}
+          onPress={() => handleArticlePress(featuredArticle)}
         />
 
         {/* Latest Stories Section Header */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>أحدث الأخبار والمعارض</Text>
-          <Text style={styles.articleCount}>{filteredArticles.length} خبر</Text>
+          <Text style={styles.sectionTitle}>{t('news.latestStories')}</Text>
+          <Text style={styles.articleCount}>{filteredArticles.length} {t('news.articlesCount')}</Text>
         </View>
 
         {/* Vertical List of News Items */}

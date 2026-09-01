@@ -16,19 +16,25 @@ import {
   SHIFT_FEATURED_ARTICLE,
   SHIFT_ARTICLES_LIST,
   ShiftNewsArticle,
+  getLocalizedArticle,
 } from '../data/shift-news.data';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 interface ArticleDetailsScreenProps {
   slug?: string;
 }
 
 export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug }) => {
+  const { t, language } = useLanguage();
   const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1);
 
   // Find article by slug or fallback to featured Shift-EG article
-  const article: ShiftNewsArticle =
+  const rawArticle: ShiftNewsArticle =
     [SHIFT_FEATURED_ARTICLE, ...SHIFT_ARTICLES_LIST].find((a) => a.slug === slug) ||
     SHIFT_FEATURED_ARTICLE;
+
+  const article = getLocalizedArticle(rawArticle, language);
+  const isEn = language === 'EN';
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -90,20 +96,20 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
         <View style={styles.articleSheet}>
           {/* Category Red Badge */}
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{article.category.toUpperCase()}</Text>
+            <Text style={styles.categoryText}>{(article.category || 'NEWS').toUpperCase()}</Text>
           </View>
 
           {/* Article Title */}
-          <Text style={[styles.articleTitle, { fontSize: 24 * fontSizeMultiplier }]}>
+          <Text style={[styles.articleTitle, { fontSize: 24 * fontSizeMultiplier, textAlign: isEn ? 'left' : 'right' }]}>
             {article.title}
           </Text>
 
           {/* Author & Meta Row */}
-          <View style={styles.authorRow}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{getInitials(article.authorName)}</Text>
+          <View style={[styles.authorRow, { flexDirection: isEn ? 'row' : 'row-reverse' }]}>
+            <View style={[styles.avatarCircle, isEn ? { marginRight: 12 } : { marginLeft: 12 }]}>
+              <Text style={styles.avatarText}>{getInitials(article.authorName || 'SE')}</Text>
             </View>
-            <View style={styles.authorInfo}>
+            <View style={[styles.authorInfo, { alignItems: isEn ? 'flex-start' : 'flex-end' }]}>
               <Text style={styles.authorName}>{article.authorName}</Text>
               <Text style={styles.metaText}>{article.publishedDate} · {article.readTime}</Text>
             </View>
@@ -112,23 +118,23 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
           <View style={styles.divider} />
 
           {/* Article Lead Paragraph */}
-          <Text style={[styles.leadParagraph, { fontSize: 16 * fontSizeMultiplier }]}>
+          <Text style={[styles.leadParagraph, { fontSize: 16 * fontSizeMultiplier, textAlign: isEn ? 'left' : 'right' }]}>
             {article.summary}
           </Text>
 
           {/* Section Subheading */}
-          <Text style={[styles.subheading, { fontSize: 19 * fontSizeMultiplier }]}>
-            التفاصيل والتغطية الصحفية
+          <Text style={[styles.subheading, { fontSize: 19 * fontSizeMultiplier, textAlign: isEn ? 'left' : 'right' }]}>
+            {isEn ? 'Full Coverage & Details' : 'التفاصيل والتغطية الصحفية'}
           </Text>
 
           {/* Article Body Paragraph */}
-          <Text style={[styles.bodyParagraph, { fontSize: 16 * fontSizeMultiplier }]}>
+          <Text style={[styles.bodyParagraph, { fontSize: 16 * fontSizeMultiplier, textAlign: isEn ? 'left' : 'right' }]}>
             {article.fullContent}
           </Text>
 
           {/* Source Attribution Badge */}
           <View style={styles.sourceBox}>
-            <Text style={styles.sourceBoxText}>المصدر: Shift-EG (شيفت مصر)</Text>
+            <Text style={styles.sourceBoxText}>{t('news.sourceTag')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -229,10 +235,8 @@ const styles = StyleSheet.create({
     color: '#0F2942',
     lineHeight: 34,
     marginBottom: 20,
-    textAlign: 'right',
   },
   authorRow: {
-    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -243,7 +247,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F2942',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
   },
   avatarText: {
     color: '#FFFFFF',
@@ -252,7 +255,6 @@ const styles = StyleSheet.create({
   },
   authorInfo: {
     justifyContent: 'center',
-    alignItems: 'flex-end',
   },
   authorName: {
     fontSize: 16,
@@ -274,20 +276,17 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 26,
     marginBottom: 24,
-    textAlign: 'right',
   },
   subheading: {
     fontWeight: '800',
     color: '#0F2942',
     marginBottom: 12,
-    textAlign: 'right',
   },
   bodyParagraph: {
     fontWeight: '400',
     color: '#4B5563',
     lineHeight: 26,
     marginBottom: 20,
-    textAlign: 'right',
   },
   sourceBox: {
     marginTop: 16,

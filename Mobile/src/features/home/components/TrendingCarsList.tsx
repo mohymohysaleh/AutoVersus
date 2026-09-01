@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useLanguage } from '../../../shared/context/LanguageContext';
+
 export interface TrendingCarItem {
   id: string;
   name: string;
@@ -66,6 +68,7 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
   onSeeAllPress,
   onCarPress,
 }) => {
+  const { t } = useLanguage();
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
   const toggleBookmark = (id: string) => {
@@ -80,8 +83,8 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
       {/* Section Header */}
       <View nativeID="home-trending-cars-header" style={styles.headerRow}>
         <View>
-          <Text style={styles.popularLabel}>POPULAR NOW</Text>
-          <Text style={styles.title}>Trending Cars</Text>
+          <Text style={styles.popularLabel}>POPULAR VEHICLES</Text>
+          <Text style={styles.title}>{t('home.popularNow')}</Text>
         </View>
         <TouchableOpacity
           testID="home-see-all-trending-button"
@@ -89,7 +92,7 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
           onPress={onSeeAllPress}
           activeOpacity={0.7}
         >
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
         </TouchableOpacity>
       </View>
 

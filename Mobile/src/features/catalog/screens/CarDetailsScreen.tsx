@@ -15,16 +15,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { catalogApi, VariantDetailDto } from '../api/catalog.api';
 import { resolveCarImage } from '../../../shared/utils/car-image.utils';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 interface CarDetailsScreenProps {
   slug?: string;
 }
 
 export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'Overview' | 'Specs' | 'Safety' | 'Features'>('Overview');
   const [variant, setVariant] = useState<VariantDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+
+  const tabsMap: Record<string, string> = {
+    Overview: t('details.overview'),
+    Specs: t('details.specs'),
+    Safety: t('details.safety'),
+    Features: t('details.features'),
+  };
 
   useEffect(() => {
     loadVariantDetails();
@@ -137,7 +146,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
             <View style={styles.actionButtonsRow}>
               <TouchableOpacity style={styles.outlineBtn} activeOpacity={0.8}>
                 <Ionicons name="swap-horizontal-outline" size={18} color="#0F2942" />
-                <Text style={styles.outlineBtnText}>Add to Compare</Text>
+                <Text style={styles.outlineBtnText}>{t('compare.title')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -151,7 +160,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
                   color={isSaved ? '#C92A2A' : '#0F2942'}
                 />
                 <Text style={[styles.solidBtnText, isSaved && styles.solidBtnTextSaved]}>
-                  {isSaved ? 'Saved in Garage' : 'Save to Garage'}
+                  {isSaved ? t('details.savedInGarage') : t('details.saveToGarage')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -166,7 +175,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
                     style={[styles.tabItem, isActive && styles.tabItemActive]}
                     onPress={() => setActiveTab(tab)}
                   >
-                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{tab}</Text>
+                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>{tabsMap[tab]}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -177,7 +186,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
               <View style={styles.overviewGrid}>
                 <View style={styles.specBox}>
                   <Ionicons name="flash-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>Horsepower</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.horsepower')}</Text>
                   <Text style={styles.specBoxValue}>
                     {variant?.engine?.powerHp ? `${variant.engine.powerHp} HP` : 'N/A'}
                   </Text>
@@ -185,7 +194,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
                 <View style={styles.specBox}>
                   <Ionicons name="speedometer-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>Torque</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.torque')}</Text>
                   <Text style={styles.specBoxValue}>
                     {variant?.engine?.torqueNm ? `${variant.engine.torqueNm} Nm` : 'N/A'}
                   </Text>
@@ -193,7 +202,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
                 <View style={styles.specBox}>
                   <Ionicons name="stopwatch-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>0 - 100 km/h</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.zeroToHundred')}</Text>
                   <Text style={styles.specBoxValue}>
                     {variant?.performance?.zeroToHundredKmh ? `${variant.performance.zeroToHundredKmh} sec` : 'N/A'}
                   </Text>
@@ -201,7 +210,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
                 <View style={styles.specBox}>
                   <Ionicons name="flame-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>Top Speed</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.topSpeed')}</Text>
                   <Text style={styles.specBoxValue}>
                     {variant?.performance?.topSpeedKmh ? `${variant.performance.topSpeedKmh} km/h` : 'N/A'}
                   </Text>
@@ -209,7 +218,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
                 <View style={styles.specBox}>
                   <Ionicons name="leaf-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>Fuel Economy</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.fuelEconomy')}</Text>
                   <Text style={styles.specBoxValue}>
                     {variant?.fuelEconomy?.combinedL100km === 0
                       ? 'Electric (EV)'
@@ -221,9 +230,9 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
                 <View style={styles.specBox}>
                   <Ionicons name="shield-checkmark-outline" size={22} color="#0F2942" style={{ marginBottom: 6 }} />
-                  <Text style={styles.specBoxLabel}>Airbags</Text>
+                  <Text style={styles.specBoxLabel}>{t('details.airbags')}</Text>
                   <Text style={styles.specBoxValue}>
-                    {variant?.safety?.airbagsCount ? `${variant.safety.airbagsCount} Airbags` : 'N/A'}
+                    {variant?.safety?.airbagsCount ? `${variant.safety.airbagsCount}` : 'N/A'}
                   </Text>
                 </View>
               </View>
@@ -232,41 +241,41 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
             {/* TAB CONTENT: SPECS */}
             {activeTab === 'Specs' && (
               <View style={styles.specsTabContainer}>
-                <Text style={styles.specGroupTitle}>ENGINE & POWERTRAIN</Text>
+                <Text style={styles.specGroupTitle}>{t('details.enginePowertrain')}</Text>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Fuel Type</Text>
+                  <Text style={styles.specDetailKey}>{t('details.fuelType')}</Text>
                   <Text style={styles.specDetailVal}>{variant?.engine?.fuelType || 'N/A'}</Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Displacement</Text>
+                  <Text style={styles.specDetailKey}>{t('details.displacement')}</Text>
                   <Text style={styles.specDetailVal}>
                     {variant?.engine?.displacementCc ? `${variant.engine.displacementCc} cc` : 'N/A (EV)'}
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Engine Power Output</Text>
+                  <Text style={styles.specDetailKey}>{t('details.horsepower')}</Text>
                   <Text style={styles.specDetailVal}>
                     {variant?.engine?.powerHp ? `${variant.engine.powerHp} HP (${variant.engine.powerKw || Math.round(variant.engine.powerHp * 0.745)} kW)` : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Max Torque</Text>
+                  <Text style={styles.specDetailKey}>{t('details.torque')}</Text>
                   <Text style={styles.specDetailVal}>
                     {variant?.engine?.torqueNm ? `${variant.engine.torqueNm} Nm` : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Transmission</Text>
+                  <Text style={styles.specDetailKey}>{t('details.transmission')}</Text>
                   <Text style={styles.specDetailVal}>{variant?.engine?.transmission || 'N/A'}</Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Drivetrain</Text>
+                  <Text style={styles.specDetailKey}>{t('details.drivetrain')}</Text>
                   <Text style={styles.specDetailVal}>{variant?.engine?.drivetrain || 'N/A'}</Text>
                 </View>
 
-                <Text style={[styles.specGroupTitle, { marginTop: 18 }]}>DIMENSIONS & CAPACITY</Text>
+                <Text style={[styles.specGroupTitle, { marginTop: 18 }]}>{t('details.dimensionsCapacity')}</Text>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Length × Width × Height</Text>
+                  <Text style={styles.specDetailKey}>{t('details.dimensions')}</Text>
                   <Text style={styles.specDetailVal}>
                     {variant?.dimensions
                       ? `${variant.dimensions.lengthMm} × ${variant.dimensions.widthMm} × ${variant.dimensions.heightMm} mm`
@@ -274,21 +283,21 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Wheelbase</Text>
+                  <Text style={styles.specDetailKey}>{t('details.wheelbase')}</Text>
                   <Text style={styles.specDetailVal}>
                     {variant?.dimensions?.wheelbaseMm ? `${variant.dimensions.wheelbaseMm} mm` : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Trunk / Cargo Volume</Text>
+                  <Text style={styles.specDetailKey}>{t('details.trunkVolume')}</Text>
                   <Text style={styles.specDetailVal}>
-                    {variant?.dimensions?.cargoCapacityL ? `${variant.dimensions.cargoCapacityL} Liters` : 'N/A'}
+                    {variant?.dimensions?.cargoCapacityL ? `${variant.dimensions.cargoCapacityL} L` : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.specDetailRow}>
-                  <Text style={styles.specDetailKey}>Seating Capacity</Text>
+                  <Text style={styles.specDetailKey}>{t('details.seating')}</Text>
                   <Text style={styles.specDetailVal}>
-                    {variant?.dimensions?.seatingCapacity ? `${variant.dimensions.seatingCapacity} Passengers` : '5 Passengers'}
+                    {variant?.dimensions?.seatingCapacity ? `${variant.dimensions.seatingCapacity}` : '5'}
                   </Text>
                 </View>
 

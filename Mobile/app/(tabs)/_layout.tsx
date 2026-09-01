@@ -3,7 +3,11 @@ import { Tabs } from 'expo-router';
 import { View, StyleSheet, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useLanguage } from '../../src/shared/context/LanguageContext';
+
 export default function TabLayout() {
+  const { t } = useLanguage();
+
   return (
     <Tabs
       screenOptions={{
@@ -19,7 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('nav.home'),
           tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons
@@ -37,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Search',
+          title: t('nav.catalog'),
           tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons
@@ -55,7 +59,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="compare"
         options={{
-          title: 'Compare',
+          title: t('nav.compare'),
           tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons
@@ -73,7 +77,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="news"
         options={{
-          title: 'News',
+          title: t('nav.news'),
           tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons
@@ -91,7 +95,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('nav.profile'),
           tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons

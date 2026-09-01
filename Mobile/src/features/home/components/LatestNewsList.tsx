@@ -12,7 +12,9 @@ import {
   SHIFT_FEATURED_ARTICLE,
   SHIFT_ARTICLES_LIST,
   ShiftNewsArticle,
+  getLocalizedArticle,
 } from '../../news/data/shift-news.data';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export interface NewsArticleCardItem {
   id: string;
@@ -38,6 +40,7 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
   onSeeAllPress,
   onArticlePress,
 }) => {
+  const { t, language } = useLanguage();
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
   const toggleBookmark = (id: string) => {
@@ -52,8 +55,8 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
       {/* Section Header */}
       <View nativeID="home-latest-news-header" style={styles.headerRow}>
         <View>
-          <Text style={styles.newsLabel}>SHIFT-EG AUTOMOTIVE FEED</Text>
-          <Text style={styles.title}>أحدث أخبار السيارات</Text>
+          <Text style={styles.newsLabel}>{t('news.editorialTag')}</Text>
+          <Text style={styles.title}>{t('home.latestNews')}</Text>
         </View>
         <TouchableOpacity
           testID="home-see-all-news-button"
@@ -61,7 +64,7 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
           onPress={onSeeAllPress}
           activeOpacity={0.7}
         >
-          <Text style={styles.seeAllText}>كل الأخبار</Text>
+          <Text style={styles.seeAllText}>{t('home.seeAll')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -73,8 +76,10 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {HOME_NEWS_ARTICLES.map((article) => {
+        {HOME_NEWS_ARTICLES.map((rawArticle) => {
+          const article = getLocalizedArticle(rawArticle, language);
           const isBookmarked = !!bookmarkedIds[article.id];
+          const categoryText = (article.category || 'NEWS').toUpperCase();
           return (
             <TouchableOpacity
               key={article.id}
@@ -90,7 +95,7 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
 
                 {/* Category Badge Pill */}
                 <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{article.category.toUpperCase()}</Text>
+                  <Text style={styles.categoryText}>{categoryText}</Text>
                 </View>
 
                 {/* Floating Bookmark Button */}

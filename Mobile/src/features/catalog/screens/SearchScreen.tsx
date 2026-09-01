@@ -19,13 +19,15 @@ import { CarItem, FilterState } from '../types/catalog.types';
 import { catalogApi, BrandDto } from '../api/catalog.api';
 import { router } from 'expo-router';
 import { resolveCarImage } from '../../../shared/utils/car-image.utils';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export const SearchScreen: React.FC = () => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
-  
+
   // Dynamic Catalog State (100% API Driven from PostgreSQL Database)
   const [brands, setBrands] = useState<BrandDto[]>([]);
   const [selectedBrandSlug, setSelectedBrandSlug] = useState<string | null>(null);
@@ -40,7 +42,6 @@ export const SearchScreen: React.FC = () => {
   const loadCatalogData = async (brandSlug?: string | null) => {
     setIsLoading(true);
     try {
-      // Fetch Brands from Database
       if (brands.length === 0) {
         const fetchedBrands = await catalogApi.fetchBrands();
         if (fetchedBrands && fetchedBrands.length > 0) {
@@ -48,7 +49,6 @@ export const SearchScreen: React.FC = () => {
         }
       }
 
-      // Fetch Vehicles from Backend Search API
       const searchRes = await catalogApi.searchVehicles({
         brandSlug: brandSlug || undefined,
         limit: 300,
@@ -86,7 +86,6 @@ export const SearchScreen: React.FC = () => {
     loadCatalogData(slug);
   };
 
-  // Filter cars based on search input & selected brand
   const filteredCars = carsList.filter((car) => {
     const matchesSearch =
       car.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -116,7 +115,7 @@ export const SearchScreen: React.FC = () => {
           <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search make, model, or spec..."
+            placeholder={t('home.searchPlaceholder')}
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -139,23 +138,24 @@ export const SearchScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.toggleBtn, layoutMode === 'list' && styles.toggleBtnActive]}
             onPress={() => setLayoutMode('list')}
+            activeOpacity={0.8}
           >
-            <Ionicons name="list-outline" size={18} color={layoutMode === 'list' ? '#0F2942' : '#9CA3AF'} />
+            <Ionicons name="list-outline" size={18} color={layoutMode === 'list' ? '#0F2942' : '#64748B'} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* HORIZONTAL BRAND SELECTOR BAR */}
+      {/* Horizontal Brand Selector Carousel */}
       <View style={styles.brandSelectorContainer}>
         <View style={styles.brandSelectorHeader}>
-          <Text style={styles.sectionLabel}>EXPLORE BY BRAND</Text>
+          <Text style={styles.sectionLabel}>{t('catalog.allBrands').toUpperCase()}</Text>
           {selectedBrandSlug && (
             <TouchableOpacity
               style={styles.clearBrandButton}
               onPress={() => handleSelectBrand(null)}
               activeOpacity={0.8}
             >
-              <Text style={styles.clearBrandText}>Clear Filter ✕</Text>
+              <Text style={styles.clearBrandText}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -168,7 +168,7 @@ export const SearchScreen: React.FC = () => {
             activeOpacity={0.8}
           >
             <Text style={[styles.brandPillText, !selectedBrandSlug && styles.brandPillTextActive]}>
-              All Brands
+              {t('catalog.allBrands')}
             </Text>
           </TouchableOpacity>
 
@@ -201,14 +201,14 @@ export const SearchScreen: React.FC = () => {
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.autoDataBrandTitle}>{selectedBrandObject?.name} Catalog</Text>
+              <Text style={styles.autoDataBrandTitle}>{selectedBrandObject?.name}</Text>
               <Text style={styles.autoDataBrandSub}>
-                {selectedBrandObject?.country ? `Origin: ${selectedBrandObject.country}` : 'Global Brand'} • {filteredCars.length} Models & Trims
+                {selectedBrandObject?.country ? `${selectedBrandObject.country}` : 'Global Brand'} • {filteredCars.length} {t('catalog.resultsCount')}
               </Text>
             </View>
             <TouchableOpacity style={styles.viewAllBrandModelsBtn} onPress={() => handleSelectBrand(null)}>
               <Ionicons name="apps-outline" size={16} color="#0F2942" />
-              <Text style={styles.viewAllBrandModelsText}>All Makes</Text>
+              <Text style={styles.viewAllBrandModelsText}>{t('catalog.allBrands')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -222,7 +222,7 @@ export const SearchScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Ionicons name="options-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.filtersPillText}>Filter Specs</Text>
+          <Text style={styles.filtersPillText}>{t('catalog.filterSpecs')}</Text>
           {activeFiltersCount > 0 && (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
@@ -231,7 +231,7 @@ export const SearchScreen: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.sortDropdown}>
-          <Text style={styles.sortText}>Price: Low to High</Text>
+          <Text style={styles.sortText}>{t('catalog.priceLowHigh')}</Text>
           <Ionicons name="chevron-down" size={16} color="#374151" />
         </TouchableOpacity>
       </View>
@@ -239,9 +239,9 @@ export const SearchScreen: React.FC = () => {
       {/* Section Title */}
       <View style={styles.titleRow}>
         <Text style={styles.mainTitle}>
-          {selectedBrandObject ? `${selectedBrandObject.name} Models` : 'All Vehicle Specifications'}
+          {selectedBrandObject ? `${selectedBrandObject.name}` : t('catalog.title')}
         </Text>
-        <Text style={styles.resultCount}>{filteredCars.length} results</Text>
+        <Text style={styles.resultCount}>{filteredCars.length} {t('catalog.resultsCount')}</Text>
       </View>
 
       {/* Loading Indicator */}
@@ -378,33 +378,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   brandPillActive: {
     backgroundColor: '#0F2942',
     borderColor: '#0F2942',
   },
   brandPillText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#475569',
   },
   brandPillTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
   },
   autoDataBrandCard: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   autoDataHeaderRow: {
     flexDirection: 'row',
@@ -412,37 +409,37 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   brandBadgeSquare: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: '#0F2942',
     alignItems: 'center',
     justifyContent: 'center',
   },
   brandBadgeLetter: {
-    color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '800',
+    color: '#FFFFFF',
   },
   autoDataBrandTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: '#0F2942',
   },
   autoDataBrandSub: {
     fontSize: 12,
     color: '#64748B',
-    marginTop: 2,
+    fontWeight: '500',
   },
   viewAllBrandModelsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#CBD5E1',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
     gap: 4,
   },
   viewAllBrandModelsText: {
@@ -461,10 +458,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0F2942',
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 24,
-    gap: 6,
+    borderRadius: 20,
+    gap: 8,
   },
   filtersPillText: {
     color: '#FFFFFF',
@@ -472,28 +469,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   filterBadge: {
+    backgroundColor: '#C92A2A',
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#C92A2A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 2,
   },
   filterBadgeText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
   },
   sortDropdown: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 6,
   },
   sortText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
   },

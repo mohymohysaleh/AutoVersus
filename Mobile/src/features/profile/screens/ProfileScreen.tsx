@@ -15,10 +15,14 @@ import { SavedVehiclesTab } from '../components/SavedVehiclesTab';
 import { SavedComparisonsTab } from '../components/SavedComparisonsTab';
 import { AccountSettingsTab } from '../components/AccountSettingsTab';
 import { useAuthStore } from '../../identity/store/auth.store';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export const ProfileScreen: React.FC = () => {
+  const { t, language } = useLanguage();
   const { isAuthenticated, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'saved' | 'comparisons' | 'account'>('saved');
+
+  const isEn = language === 'EN';
 
   const handleCreateAccount = () => {
     router.push({
@@ -45,8 +49,8 @@ export const ProfileScreen: React.FC = () => {
         {/* Header Row */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.collectionLabel}>GUEST MODE</Text>
-            <Text style={styles.mainTitle}>My Garage & Account</Text>
+            <Text style={styles.collectionLabel}>{isEn ? 'GUEST MODE' : 'وضع الزائر'}</Text>
+            <Text style={styles.mainTitle}>{isEn ? 'My Garage & Account' : 'كراجي وحسابي'}</Text>
           </View>
 
           <TouchableOpacity style={styles.editButton} onPress={handleSignIn} activeOpacity={0.7}>
@@ -61,28 +65,26 @@ export const ProfileScreen: React.FC = () => {
               <Ionicons name="shield-checkmark" size={32} color="#FFFFFF" />
             </View>
 
-            <Text style={styles.guestHeadline}>Unlock Your Personal Garage</Text>
+            <Text style={styles.guestHeadline}>{isEn ? 'Unlock Your Personal Garage' : 'افتح كراجك الشخصي'}</Text>
             <Text style={styles.guestSubtitle}>
-              You are exploring AutoVersus as a guest. Sign in or create an account to save your favorite car specs, receive live Egyptian market price drop alerts, and compare vehicles side-by-side.
+              {isEn
+                ? 'You are exploring AutoVersus as a guest. Sign in or create an account to save your favorite car specs, receive live Egyptian market price drop alerts, and compare vehicles side-by-side.'
+                : 'أنت تتصفح أوتو فيرسس كزائر. سجل الدخول أو أنشئ حساباً لحفظ مواصفات سياراتك المفضلة، وتلقي تنبيهات أسعار السوق المصري، ومقارنة السيارات جنبًا إلى جنب.'}
             </Text>
 
             {/* Benefit Checklist */}
             <View style={styles.benefitChecklist}>
               <View style={styles.benefitRow}>
                 <Ionicons name="checkmark-circle" size={18} color="#93C5FD" />
-                <Text style={styles.benefitText}>Save favorite car trims & deep specifications</Text>
+                <Text style={styles.benefitText}>{isEn ? 'Save favorite car trims & specs' : 'حفظ فئات ومواصفات السيارات المفضلة'}</Text>
               </View>
               <View style={styles.benefitRow}>
                 <Ionicons name="checkmark-circle" size={18} color="#93C5FD" />
-                <Text style={styles.benefitText}>Track live agency MSRP & dealer price shifts</Text>
+                <Text style={styles.benefitText}>{isEn ? 'Track live agency MSRP price shifts' : 'متابعة تغيرات أسعار الوكيل والسوق'}</Text>
               </View>
               <View style={styles.benefitRow}>
                 <Ionicons name="checkmark-circle" size={18} color="#93C5FD" />
-                <Text style={styles.benefitText}>Store custom head-to-head vehicle matchups</Text>
-              </View>
-              <View style={styles.benefitRow}>
-                <Ionicons name="checkmark-circle" size={18} color="#93C5FD" />
-                <Text style={styles.benefitText}>2-Minute AI Lifestyle Matcher</Text>
+                <Text style={styles.benefitText}>{isEn ? 'Store custom vehicle matchups' : 'حفظ مقارنات السيارات الخاصة بك'}</Text>
               </View>
             </View>
           </View>
@@ -96,7 +98,7 @@ export const ProfileScreen: React.FC = () => {
               onPress={handleCreateAccount}
               activeOpacity={0.85}
             >
-              <Text style={styles.guestRedButtonText}>Create an Account</Text>
+              <Text style={styles.guestRedButtonText}>{isEn ? 'Create an Account' : 'إنشاء حساب جديد'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -106,7 +108,7 @@ export const ProfileScreen: React.FC = () => {
               onPress={handleSignIn}
               activeOpacity={0.85}
             >
-              <Text style={styles.guestNavyButtonText}>Sign In to Existing Account</Text>
+              <Text style={styles.guestNavyButtonText}>{isEn ? 'Sign In to Existing Account' : 'تسجيل الدخول لحسابك'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -124,8 +126,8 @@ export const ProfileScreen: React.FC = () => {
       {/* Header Row */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.collectionLabel}>WELCOME BACK</Text>
-          <Text style={styles.mainTitle}>{user?.name || 'My Garage'}</Text>
+          <Text style={styles.collectionLabel}>{isEn ? 'WELCOME BACK' : 'مرحباً بك'}</Text>
+          <Text style={styles.mainTitle}>{user?.name || (isEn ? 'My Garage' : 'كراجي')}</Text>
         </View>
 
         <TouchableOpacity style={styles.editButton} activeOpacity={0.7}>
@@ -141,7 +143,7 @@ export const ProfileScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, activeTab === 'saved' && styles.tabTextActive]}>
-            Saved Vehicles (6)
+            {isEn ? 'Saved' : 'المحفوظات'}
           </Text>
         </TouchableOpacity>
 
@@ -151,7 +153,7 @@ export const ProfileScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, activeTab === 'comparisons' && styles.tabTextActive]}>
-            Comparisons (2)
+            {isEn ? 'Comparisons' : 'المقارنات'}
           </Text>
         </TouchableOpacity>
 
@@ -161,7 +163,7 @@ export const ProfileScreen: React.FC = () => {
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, activeTab === 'account' && styles.tabTextActive]}>
-            Account
+            {isEn ? 'Account' : 'إعدادات الحساب'}
           </Text>
         </TouchableOpacity>
       </View>

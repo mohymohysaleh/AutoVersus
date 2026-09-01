@@ -2,11 +2,15 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useLanguage } from '../../../shared/context/LanguageContext';
+
 interface FindMyCarBannerProps {
   onQuizPress?: () => void;
 }
 
 export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress }) => {
+  const { t } = useLanguage();
+
   return (
     <View nativeID="home-quiz-banner-container" testID="home-quiz-banner-container" style={styles.container}>
       {/* Left Content Area */}
@@ -14,17 +18,17 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
         {/* Header Tag */}
         <View style={styles.tagRow}>
           <Ionicons name="sparkles-outline" size={14} color="#FFFFFF" />
-          <Text style={styles.tagText}>FIND MY CAR</Text>
+          <Text style={styles.tagText}>{t('home.findMyCarTitle')}</Text>
         </View>
 
         {/* Headline */}
         <Text style={styles.headline}>
-          Not sure which car fits your lifestyle?
+          {t('home.findMyCarTitle')}
         </Text>
 
         {/* Subtitle */}
         <Text style={styles.subtitle}>
-          Answer a few quick questions. We'll find your match.
+          {t('home.findMyCarSubtitle')}
         </Text>
 
         {/* CTA Quiz Button */}
@@ -35,7 +39,7 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
           onPress={onQuizPress}
           activeOpacity={0.85}
         >
-          <Text style={styles.quizButtonText}>Take 2-Min Quiz</Text>
+          <Text style={styles.quizButtonText}>{t('home.startQuiz')}</Text>
           <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
