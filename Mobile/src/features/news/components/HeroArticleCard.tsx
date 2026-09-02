@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { NewsArticleItem } from '../types/news.types';
 import { ShiftNewsArticle } from '../data/shift-news.data';
@@ -9,6 +9,8 @@ interface HeroArticleCardProps {
 }
 
 export const HeroArticleCard: React.FC<HeroArticleCardProps> = ({ article, onPress }) => {
+  const [imgSrc, setImgSrc] = useState(article.coverImage);
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -17,7 +19,19 @@ export const HeroArticleCard: React.FC<HeroArticleCardProps> = ({ article, onPre
     >
       {/* Hero Cover Image */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: article.coverImage }} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{
+            uri: imgSrc || article.coverImage,
+            headers: {
+              Referer: 'https://www.shift-eg.com/',
+            },
+          }}
+          style={styles.image}
+          resizeMode="cover"
+          onError={() => {
+            setImgSrc('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80');
+          }}
+        />
       </View>
 
       {/* Content */}

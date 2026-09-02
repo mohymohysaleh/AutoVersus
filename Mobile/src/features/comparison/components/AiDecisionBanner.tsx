@@ -18,8 +18,8 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
     return (
       <View style={styles.bannerContainer}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#0F3040" />
-          <Text style={styles.loadingText}>Grok AI is evaluating vehicle specs & drivers priority...</Text>
+          <ActivityIndicator size="small" color="#38BDF8" />
+          <Text style={styles.loadingText}>Grok AI is evaluating vehicle specs & driver priority...</Text>
         </View>
       </View>
     );
@@ -29,9 +29,9 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
     <View style={styles.bannerContainer}>
       {/* Top AI Engine Tag */}
       <View style={styles.engineTagRow}>
-        <Ionicons name="hardware-chip-outline" size={12} color="#0F3040" />
+        <Ionicons name="hardware-chip" size={12} color="#38BDF8" />
         <Text style={styles.engineTagText}>
-          {verdict.aiEngine || 'Powered by Grok AI Engine (llama-3.3-70b-versatile)'}
+          {verdict.aiEngine || 'Powered by Grok AI Engine (openai/gpt-oss-120b)'}
         </Text>
       </View>
 
@@ -39,12 +39,12 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
       <View style={styles.headerRow}>
         <View style={styles.titleGroup}>
           <View style={styles.iconCircle}>
-            <Ionicons name="trophy" size={16} color="#D97706" />
+            <Ionicons name="trophy" size={18} color="#F59E0B" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.bannerTitle}>{verdict.title || 'AutoVersus AI Verdict'}</Text>
             {verdict.winnerName && (
-              <Text style={styles.winnerSubTag}>Selected by Grok AI Analysis</Text>
+              <Text style={styles.winnerSubTag}>Selected by Grok AI Real-Time Analysis</Text>
             )}
           </View>
         </View>
@@ -52,7 +52,7 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
         {/* Applied Prompt Pill Badge */}
         {verdict.promptApplied && (
           <View style={styles.promptActiveBadge}>
-            <Ionicons name="sparkles" size={12} color="#0F3040" />
+            <Ionicons name="sparkles" size={12} color="#F59E0B" />
             <Text style={styles.promptActiveText}>Custom Priority</Text>
           </View>
         )}
@@ -61,7 +61,7 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
       {/* Reason Header & Text */}
       <View style={styles.reasonBox}>
         <View style={styles.reasonLabelRow}>
-          <Ionicons name="bulb-outline" size={14} color="#0F3040" />
+          <Ionicons name="bulb" size={14} color="#F59E0B" />
           <Text style={styles.reasonLabel}>GROK AI VERDICT & RATIONALE</Text>
         </View>
         <Text style={styles.summaryText}>{verdict.summary}</Text>
@@ -72,7 +72,7 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
             <Text style={styles.advantagesHeader}>KEY DECISION FACTORS:</Text>
             {verdict.keyAdvantages.map((adv, idx) => (
               <View key={idx} style={styles.advantageRow}>
-                <Ionicons name="checkmark-circle" size={14} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={15} color="#10B981" />
                 <Text style={styles.advantageText}>{adv}</Text>
               </View>
             ))}
@@ -87,8 +87,8 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
           onPress={onPersonalizePress}
           activeOpacity={0.8}
         >
-          <Ionicons name="options-outline" size={14} color="#0F3040" />
-          <Text style={styles.personalizeText}>Change Driver Priority</Text>
+          <Ionicons name="options-outline" size={14} color="#FFFFFF" />
+          <Text style={styles.personalizeText}>Customize Driver Priority</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -97,86 +97,91 @@ export const AiDecisionBanner: React.FC<AiDecisionBannerProps> = ({
 
 const styles = StyleSheet.create({
   bannerContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#0F2942',
     borderWidth: 1.5,
-    borderColor: '#0F3040',
-    borderRadius: 16,
-    padding: 16,
+    borderColor: '#1E495E',
+    borderTopColor: '#F59E0B',
+    borderRadius: 20,
+    padding: 18,
     marginHorizontal: 16,
     marginVertical: 14,
-    shadowColor: '#0F3040',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowColor: '#0F2942',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
   },
   engineTagRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
-    backgroundColor: 'rgba(15, 48, 64, 0.06)',
+    marginBottom: 12,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
   engineTagText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#0F3040',
+    color: '#38BDF8',
     letterSpacing: 0.3,
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     gap: 10,
   },
   loadingText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#0F3040',
+    fontWeight: '700',
+    color: '#38BDF8',
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   titleGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     flex: 1,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FEF3C7',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#F59E0B',
   },
   bannerTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#0F3040',
+    color: '#FFFFFF',
     letterSpacing: 0.2,
   },
   winnerSubTag: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#64748B',
-    marginTop: 1,
+    color: '#94A3B8',
+    marginTop: 2,
   },
   promptActiveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 48, 64, 0.1)',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -185,45 +190,45 @@ const styles = StyleSheet.create({
   promptActiveText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0F3040',
+    color: '#F59E0B',
   },
   reasonBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: '#163A4E',
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 12,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    marginBottom: 14,
   },
   reasonLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   reasonLabel: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#0F3040',
-    letterSpacing: 0.5,
+    fontWeight: '900',
+    color: '#F59E0B',
+    letterSpacing: 0.8,
   },
   summaryText: {
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: '#1E293B',
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#F1F5F9',
     fontWeight: '500',
   },
   advantagesContainer: {
     marginTop: 12,
-    paddingTop: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    gap: 6,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 8,
   },
   advantagesHeader: {
     fontSize: 10.5,
-    fontWeight: '800',
-    color: '#64748B',
+    fontWeight: '900',
+    color: '#38BDF8',
     letterSpacing: 0.8,
     marginBottom: 2,
   },
@@ -233,11 +238,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   advantageText: {
-    fontSize: 12.5,
-    color: '#1E293B',
+    fontSize: 13,
+    color: '#E2E8F0',
     fontWeight: '600',
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 19,
   },
   footerRow: {
     flexDirection: 'row',
@@ -247,18 +252,18 @@ const styles = StyleSheet.create({
   personalizePillButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: '#0F3040',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   personalizeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0F3040',
+    color: '#FFFFFF',
   },
 });
 

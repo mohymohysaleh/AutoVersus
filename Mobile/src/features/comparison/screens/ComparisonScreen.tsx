@@ -206,6 +206,7 @@ export const ComparisonScreen: React.FC = () => {
       {/* Sticky 2-Column or 3-Column Header */}
       <StickyHeader
         cars={selectedCars}
+        winnerCarId={hasRunComparison ? aiVerdict.winnerCarId : undefined}
         onAddCarPress={handleAddCar}
         onSwapCarPress={handleSwapCar}
         onRemoveCarPress={handleRemoveCar}

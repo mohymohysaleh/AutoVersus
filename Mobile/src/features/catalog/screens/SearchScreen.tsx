@@ -260,6 +260,10 @@ export const SearchScreen: React.FC = () => {
           contentContainerStyle={styles.gridContent}
           columnWrapperStyle={layoutMode === 'grid' ? styles.columnWrapper : undefined}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === 'android'}
           renderItem={({ item }) => (
             <CarGridCard car={item} onPress={() => handleCarPress(item)} />
           )}

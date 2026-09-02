@@ -3,10 +3,12 @@ import {
   SafeAreaView,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HeroArticleCard } from '../components/HeroArticleCard';
@@ -24,6 +26,8 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 export const NewsScreen: React.FC = () => {
   const { t, language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   const categories = [
     { key: 'ALL', label: language === 'EN' ? 'All' : 'الكل' },
@@ -40,17 +44,27 @@ export const NewsScreen: React.FC = () => {
     getLocalizedArticle(art, language)
   );
 
-  const filteredArticles =
-    activeCategory === 'ALL'
-      ? localizedArticles
-      : localizedArticles.filter((art) => {
-          if (activeCategory === 'LOCAL') return art.categoryEn === 'Local News';
-          if (activeCategory === 'PRICES') return art.categoryEn === 'Car Prices';
-          if (activeCategory === 'GLOBAL') return art.categoryEn === 'Global News';
-          if (activeCategory === 'TECH') return art.categoryEn === 'Technology';
-          if (activeCategory === 'REPORTS') return art.categoryEn === 'Reports';
-          return true;
-        });
+  const filteredArticles = localizedArticles.filter((art) => {
+    // Category Filter
+    let matchesCategory = true;
+    if (activeCategory === 'LOCAL') matchesCategory = art.categoryEn === 'Local News';
+    else if (activeCategory === 'PRICES') matchesCategory = art.categoryEn === 'Car Prices';
+    else if (activeCategory === 'GLOBAL') matchesCategory = art.categoryEn === 'Global News';
+    else if (activeCategory === 'TECH') matchesCategory = art.categoryEn === 'Technology';
+    else if (activeCategory === 'REPORTS') matchesCategory = art.categoryEn === 'Reports';
+
+    // Keyword Search Filter
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return matchesCategory;
+
+    const matchesSearch =
+      art.title.toLowerCase().includes(query) ||
+      art.summary.toLowerCase().includes(query) ||
+      art.category.toLowerCase().includes(query) ||
+      (art.fullContent && art.fullContent.toLowerCase().includes(query));
+
+    return matchesCategory && matchesSearch;
+  });
 
   const handleArticlePress = (article: ShiftNewsArticle | NewsArticleItem) => {
     router.push({
@@ -65,14 +79,42 @@ export const NewsScreen: React.FC = () => {
 
       {/* Top Header Row */}
       <View style={styles.topHeader}>
-        <View>
-          <Text style={styles.editorialTag}>{t('news.editorialTag')}</Text>
-          <Text style={styles.headerTitle}>{t('news.headerTitle')}</Text>
-        </View>
+        {!isSearchOpen ? (
+          <>
+            <View>
+              <Text style={styles.editorialTag}>{t('news.editorialTag')}</Text>
+              <Text style={styles.headerTitle}>{t('news.headerTitle')}</Text>
+            </View>
 
-        <TouchableOpacity style={styles.searchIconButton} activeOpacity={0.7}>
-          <Ionicons name="search" size={20} color="#111827" />
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.searchIconButton}
+              onPress={() => setIsSearchOpen(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="search" size={20} color="#111827" />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.searchHeaderInputWrapper}>
+            <Ionicons name="search" size={18} color="#9CA3AF" />
+            <TextInput
+              style={styles.searchHeaderInput}
+              placeholder={language === 'EN' ? 'Search shift automotive news...' : 'ابحث في أخبار السيارات...'}
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setSearchQuery('');
+                setIsSearchOpen(false);
+              }}
+            >
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -130,6 +172,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   topHeader: {
     flexDirection: 'row',
@@ -159,6 +202,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  searchHeaderInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 14,
+    height: 44,
+    gap: 8,
+  },
+  searchHeaderInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
   },
   scrollContent: {
     paddingBottom: 24,

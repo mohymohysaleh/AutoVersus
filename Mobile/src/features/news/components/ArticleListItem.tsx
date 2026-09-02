@@ -11,6 +11,7 @@ interface ArticleListItemProps {
 
 export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPress }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [imgSrc, setImgSrc] = useState(article.coverImage);
 
   return (
     <TouchableOpacity
@@ -20,7 +21,19 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPre
     >
       {/* Left Thumbnail Image */}
       <View style={styles.imageContainer}>
-        <Image source={{ uri: article.coverImage }} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{
+            uri: imgSrc || article.coverImage,
+            headers: {
+              Referer: 'https://www.shift-eg.com/',
+            },
+          }}
+          style={styles.image}
+          resizeMode="cover"
+          onError={() => {
+            setImgSrc('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80');
+          }}
+        />
       </View>
 
       {/* Right Content */}

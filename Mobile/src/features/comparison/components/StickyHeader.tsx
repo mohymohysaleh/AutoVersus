@@ -5,6 +5,7 @@ import { ComparisonCar } from '../types/comparison.types';
 
 interface StickyHeaderProps {
   cars: ComparisonCar[];
+  winnerCarId?: string;
   onAddCarPress: () => void;
   onSwapCarPress: (index: number) => void;
   onRemoveCarPress: (index: number) => void;
@@ -12,6 +13,7 @@ interface StickyHeaderProps {
 
 export const StickyHeader: React.FC<StickyHeaderProps> = ({
   cars,
+  winnerCarId,
   onAddCarPress,
   onSwapCarPress,
   onRemoveCarPress,
@@ -24,43 +26,57 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
     <View style={styles.container}>
       <View style={styles.columnsRow}>
         {/* Render filled car slots */}
-        {cars.map((car, index) => (
-          <View key={car.id} style={styles.carSlot}>
-            {/* Remove car icon if 2+ cars */}
-            <TouchableOpacity
-              style={styles.removeBadge}
-              onPress={() => onRemoveCarPress(index)}
-              activeOpacity={0.8}
+        {cars.map((car, index) => {
+          const isWinner = winnerCarId && car.id === winnerCarId;
+          return (
+            <View
+              key={car.id}
+              style={[styles.carSlot, isWinner && styles.winnerCarSlot]}
             >
-              <Ionicons name="close-circle" size={18} color="#94A3B8" />
-            </TouchableOpacity>
+              {/* Winner Crown Badge */}
+              {isWinner && (
+                <View style={styles.winnerCrownTag}>
+                  <Ionicons name="trophy" size={10} color="#D97706" />
+                  <Text style={styles.winnerCrownText}>WINNER</Text>
+                </View>
+              )}
 
-            {/* Thumbnail */}
-            <TouchableOpacity
-              style={styles.imageWrapper}
-              onPress={() => onSwapCarPress(index)}
-              activeOpacity={0.85}
-            >
-              <Image source={{ uri: car.imageUrl }} style={styles.carImage} resizeMode="cover" />
-              <View style={styles.swapBadge}>
-                <Ionicons name="swap-horizontal" size={12} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
+              {/* Remove car icon if 2+ cars */}
+              <TouchableOpacity
+                style={styles.removeBadge}
+                onPress={() => onRemoveCarPress(index)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="close-circle" size={18} color="#94A3B8" />
+              </TouchableOpacity>
 
-            {/* Title & Trim */}
-            <Text style={styles.carName} numberOfLines={1}>
-              {car.brandName} {car.modelName}
-            </Text>
-            <Text style={styles.carTrim} numberOfLines={1}>
-              {car.year} {car.trimName}
-            </Text>
+              {/* Thumbnail */}
+              <TouchableOpacity
+                style={styles.imageWrapper}
+                onPress={() => onSwapCarPress(index)}
+                activeOpacity={0.85}
+              >
+                <Image source={{ uri: car.imageUrl }} style={styles.carImage} resizeMode="cover" />
+                <View style={styles.swapBadge}>
+                  <Ionicons name="swap-horizontal" size={12} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
 
-            {/* Price highlighted in #C4342B */}
-            <Text style={styles.priceText} numberOfLines={1}>
-              EGP {(car.startingPriceEGP / 1000000).toFixed(2)}M
-            </Text>
-          </View>
-        ))}
+              {/* Title & Trim */}
+              <Text style={styles.carName} numberOfLines={1}>
+                {car.brandName} {car.modelName}
+              </Text>
+              <Text style={styles.carTrim} numberOfLines={1}>
+                {car.year} {car.trimName}
+              </Text>
+
+              {/* Price highlighted in #C4342B */}
+              <Text style={styles.priceText} numberOfLines={1}>
+                EGP {(car.startingPriceEGP / 1000000).toFixed(2)}M
+              </Text>
+            </View>
+          );
+        })}
 
         {/* Empty Slot 1 (if 0 cars) */}
         {showEmptySlot1 && (
@@ -139,6 +155,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     position: 'relative',
+  },
+  winnerCarSlot: {
+    borderColor: '#F59E0B',
+    borderWidth: 2,
+    backgroundColor: '#FFFDF5',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  winnerCrownTag: {
+    position: 'absolute',
+    top: -9,
+    left: 10,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    zIndex: 5,
+  },
+  winnerCrownText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#D97706',
+    letterSpacing: 0.5,
   },
   removeBadge: {
     position: 'absolute',
