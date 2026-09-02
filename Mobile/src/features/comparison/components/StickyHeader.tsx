@@ -16,23 +16,24 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
   onSwapCarPress,
   onRemoveCarPress,
 }) => {
-  const canAddMore = cars.length < 3;
+  const showEmptySlot1 = cars.length === 0;
+  const showEmptySlot2 = cars.length <= 1;
+  const showEmptySlot3 = cars.length === 2;
 
   return (
     <View style={styles.container}>
       <View style={styles.columnsRow}>
+        {/* Render filled car slots */}
         {cars.map((car, index) => (
           <View key={car.id} style={styles.carSlot}>
-            {/* Remove car icon if 3 cars */}
-            {cars.length > 2 && (
-              <TouchableOpacity
-                style={styles.removeBadge}
-                onPress={() => onRemoveCarPress(index)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="close-circle" size={18} color="#94A3B8" />
-              </TouchableOpacity>
-            )}
+            {/* Remove car icon if 2+ cars */}
+            <TouchableOpacity
+              style={styles.removeBadge}
+              onPress={() => onRemoveCarPress(index)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close-circle" size={18} color="#94A3B8" />
+            </TouchableOpacity>
 
             {/* Thumbnail */}
             <TouchableOpacity
@@ -61,8 +62,38 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
           </View>
         ))}
 
-        {/* Circular '+' button slot if < 3 cars */}
-        {canAddMore && (
+        {/* Empty Slot 1 (if 0 cars) */}
+        {showEmptySlot1 && (
+          <TouchableOpacity
+            style={styles.addCarSlot}
+            onPress={onAddCarPress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.plusCircle}>
+              <Ionicons name="add" size={24} color="#0F3040" />
+            </View>
+            <Text style={styles.addSlotText}>Select 1st Car</Text>
+            <Text style={styles.addSlotSub}>Tap to pick vehicle</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Empty Slot 2 (if <= 1 cars) */}
+        {showEmptySlot2 && (
+          <TouchableOpacity
+            style={styles.addCarSlot}
+            onPress={onAddCarPress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.plusCircle}>
+              <Ionicons name="add" size={24} color="#0F3040" />
+            </View>
+            <Text style={styles.addSlotText}>Select 2nd Car</Text>
+            <Text style={styles.addSlotSub}>Tap to pick vehicle</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Empty Slot 3 (if exactly 2 cars) */}
+        {showEmptySlot3 && (
           <TouchableOpacity
             style={styles.addCarSlot}
             onPress={onAddCarPress}
@@ -72,7 +103,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
               <Ionicons name="add" size={24} color="#0F3040" />
             </View>
             <Text style={styles.addSlotText}>Add 3rd Car</Text>
-            <Text style={styles.addSlotSub}>Compare specs</Text>
+            <Text style={styles.addSlotSub}>Compare 3 cars</Text>
           </TouchableOpacity>
         )}
       </View>

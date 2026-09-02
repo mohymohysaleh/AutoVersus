@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -33,6 +35,12 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
 }) => {
   const [promptText, setPromptText] = useState(currentPrompt);
 
+  React.useEffect(() => {
+    if (visible) {
+      setPromptText(currentPrompt);
+    }
+  }, [visible, currentPrompt]);
+
   const handleApply = () => {
     onApplyPrompt(promptText);
     onClose();
@@ -46,9 +54,16 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.overlay}>
-          <View style={styles.modalCard}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={styles.modalCard}
+          >
             {/* Header */}
             <View style={styles.headerRow}>
               <View style={styles.headerTitleGroup}>
@@ -72,10 +87,11 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
                 style={styles.textInput}
                 multiline
                 numberOfLines={4}
+                editable={true}
                 placeholder="Example: I am a daily Cairo commuter looking for fuel efficiency and quiet ride, I don't speed..."
                 placeholderTextColor="#94A3B8"
                 value={promptText}
-                onChangeText={setPromptText}
+                onChangeText={(text) => setPromptText(text)}
                 textAlignVertical="top"
               />
             </View>
@@ -111,14 +127,17 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
                 <Text style={styles.applyBtnText}>Apply AI Personalization</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </TouchableWithoutFeedback>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardView: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 48, 64, 0.45)',

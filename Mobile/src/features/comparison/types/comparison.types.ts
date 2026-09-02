@@ -82,6 +82,11 @@ export interface MetricDefinition {
 export interface AiVerdictData {
   title: string;
   winnerCarId: string;
+  winnerName?: string;
+  winnerKey?: 'carA' | 'carB' | 'tie';
   summary: string;
+  keyAdvantages?: string[];
+  aiEngine?: string;
   promptApplied?: string;
 }
+

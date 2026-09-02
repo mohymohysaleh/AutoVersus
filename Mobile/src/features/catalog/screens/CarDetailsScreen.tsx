@@ -56,6 +56,17 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
     }
   };
 
+  const handleComparePress = () => {
+    if (variant?.slug) {
+      router.push({
+        pathname: '/(tabs)/compare',
+        params: { carSlug: variant.slug },
+      });
+    } else {
+      router.push('/(tabs)/compare');
+    }
+  };
+
   const displayTitle = variant
     ? `${variant.year} ${variant.brandName} ${variant.modelName}`
     : 'Vehicle Details';
@@ -82,7 +93,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
           <TouchableOpacity style={styles.iconCircleButton}>
             <Ionicons name="share-outline" size={18} color="#111827" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconCircleButton}>
+          <TouchableOpacity style={styles.iconCircleButton} onPress={handleComparePress}>
             <Ionicons name="swap-horizontal" size={18} color="#111827" />
           </TouchableOpacity>
         </View>
@@ -144,7 +155,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
             {/* Quick Action Buttons Row */}
             <View style={styles.actionButtonsRow}>
-              <TouchableOpacity style={styles.outlineBtn} activeOpacity={0.8}>
+              <TouchableOpacity style={styles.outlineBtn} onPress={handleComparePress} activeOpacity={0.8}>
                 <Ionicons name="swap-horizontal-outline" size={18} color="#0F2942" />
                 <Text style={styles.outlineBtnText}>{t('compare.title')}</Text>
               </TouchableOpacity>

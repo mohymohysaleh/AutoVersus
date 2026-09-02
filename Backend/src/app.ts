@@ -8,6 +8,7 @@ import catalogRouter from './modules/catalog/presentation/catalog.routes.js';
 import authRouter from './modules/identity/presentation/auth.routes.js';
 import newsRouter from './modules/news/presentation/news.routes.js';
 import pricingRouter from './modules/pricing/presentation/pricing.routes.js';
+import recommendationRouter from './modules/recommendation/presentation/recommendation.routes.js';
 
 export const createApp = (): Application => {
   const app = express();
@@ -37,6 +38,7 @@ export const createApp = (): Application => {
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/news', newsRouter);
   app.use('/api/v1/pricing', pricingRouter);
+  app.use('/api/v1/recommendation', recommendationRouter);
 
   // Global Error Handler
   app.use(errorHandler);

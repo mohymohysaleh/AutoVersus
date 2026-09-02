@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -8,20 +8,25 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import {
   ComparisonCar,
   ComparisonScope,
   MetricCategory,
+  AiVerdictData,
 } from '../types/comparison.types';
 import {
   COMPARISON_CARS_DATABASE,
   METRIC_DEFINITIONS,
   generateAiVerdict,
 } from '../data/comparison-mock.data';
+import { fetchGrokComparisonVerdict } from '../services/comparison-api.service';
+import { catalogApi } from '../../catalog/api/catalog.api';
+import { mapVariantToComparisonCar } from '../../../shared/utils/comparison-mapper';
 
 import { StickyHeader } from '../components/StickyHeader';
 import { AiDecisionBanner } from '../components/AiDecisionBanner';
@@ -29,13 +34,13 @@ import { CustomPromptModal } from '../components/CustomPromptModal';
 import { ComparisonScopeSelector } from '../components/ComparisonScopeSelector';
 import { MetricRow } from '../components/MetricRow';
 import { CarPickerModal } from '../components/CarPickerModal';
+import { AiChatModal } from '../components/AiChatModal';
 
 export const ComparisonScreen: React.FC = () => {
-  // Active selected cars (default 2 cars: Toyota Corolla Comfort vs Hyundai Elantra Smart)
-  const [selectedCars, setSelectedCars] = useState<ComparisonCar[]>([
-    COMPARISON_CARS_DATABASE[0], // Toyota Corolla 2026 Comfort
-    COMPARISON_CARS_DATABASE[1], // Hyundai Elantra 2026 Smart
-  ]);
+  const params = useLocalSearchParams<{ carSlug?: string }>();
+
+  // Active selected cars (starts empty until user selects cars)
+  const [selectedCars, setSelectedCars] = useState<ComparisonCar[]>([]);
 
   // Active comparison scope: 'Full' | 'Overview' | 'Specs' | 'Safety' | 'Features'
   const [activeScope, setActiveScope] = useState<ComparisonScope>('Full');
@@ -46,12 +51,58 @@ export const ComparisonScreen: React.FC = () => {
   // Modals state
   const [isPromptModalVisible, setIsPromptModalVisible] = useState<boolean>(false);
   const [isCarPickerVisible, setIsCarPickerVisible] = useState<boolean>(false);
+  const [isChatModalVisible, setIsChatModalVisible] = useState<boolean>(false);
   const [activeSlotToSwap, setActiveSlotToSwap] = useState<number | null>(null);
 
-  // Dynamic AI Verdict computation
-  const aiVerdict = useMemo(() => {
-    return generateAiVerdict(selectedCars, customPrompt);
-  }, [selectedCars, customPrompt]);
+  // Dynamic AI Verdict state powered by Grok AI API
+  const [aiVerdict, setAiVerdict] = useState<AiVerdictData>(() =>
+    generateAiVerdict(selectedCars, customPrompt)
+  );
+  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [hasRunComparison, setHasRunComparison] = useState<boolean>(false);
+
+  // Load car from route params if navigated from CarDetailsScreen
+  useEffect(() => {
+    if (params.carSlug) {
+      catalogApi.fetchVariantDetails(params.carSlug).then((variant) => {
+        if (variant) {
+          const compCar = mapVariantToComparisonCar(variant);
+          setSelectedCars((prev) => {
+            if (prev.length === 0) return [compCar];
+            return [compCar, ...prev.slice(1)];
+          });
+          setHasRunComparison(false);
+        }
+      });
+    }
+  }, [params.carSlug]);
+
+  const handleRunComparison = async (overridePrompt?: string) => {
+    if (selectedCars.length < 2) {
+      setIsCarPickerVisible(true);
+      return;
+    }
+
+    const activePrompt = overridePrompt !== undefined ? overridePrompt : customPrompt;
+
+    setIsAiLoading(true);
+    setHasRunComparison(true);
+    try {
+      const res = await fetchGrokComparisonVerdict(selectedCars, activePrompt);
+      setAiVerdict(res);
+    } catch (err) {
+      console.warn('Error running AI comparison:', err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleApplyPrompt = (newPrompt: string) => {
+    setCustomPrompt(newPrompt);
+    if (selectedCars.length >= 2) {
+      handleRunComparison(newPrompt);
+    }
+  };
 
   // Filtered metrics based on active scope selector
   const filteredMetrics = useMemo(() => {
@@ -86,9 +137,10 @@ export const ComparisonScreen: React.FC = () => {
   };
 
   const handleRemoveCar = (index: number) => {
-    if (selectedCars.length > 2) {
-      const updated = selectedCars.filter((_, i) => i !== index);
-      setSelectedCars(updated);
+    const updated = selectedCars.filter((_, i) => i !== index);
+    setSelectedCars(updated);
+    if (updated.length < 2) {
+      setHasRunComparison(false);
     }
   };
 
@@ -105,6 +157,7 @@ export const ComparisonScreen: React.FC = () => {
       }
     }
     setActiveSlotToSwap(null);
+    setHasRunComparison(false);
   };
 
   const handleBack = () => {
@@ -130,13 +183,24 @@ export const ComparisonScreen: React.FC = () => {
           <Text style={styles.navSubTitle}>Live AI Decision Matrix</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.iconCircleBtn}
-          onPress={() => setIsPromptModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="options-outline" size={18} color="#0F3040" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={styles.chatHeaderBtn}
+            onPress={() => setIsChatModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="chatbubbles" size={16} color="#FFFFFF" />
+            <Text style={styles.chatHeaderBtnText}>Ask AI</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.iconCircleBtn}
+            onPress={() => setIsPromptModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="options-outline" size={18} color="#0F3040" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Sticky 2-Column or 3-Column Header */}
@@ -152,12 +216,6 @@ export const ComparisonScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollBody}
       >
-        {/* AI Smart Decision Banner */}
-        <AiDecisionBanner
-          verdict={aiVerdict}
-          onPersonalizePress={() => setIsPromptModalVisible(true)}
-        />
-
         {/* Custom Prompt Input Bar */}
         <View style={styles.promptBarWrapper}>
           <TouchableOpacity
@@ -170,17 +228,64 @@ export const ComparisonScreen: React.FC = () => {
             </View>
             <View style={styles.promptTextContainer}>
               <Text style={styles.promptLabel}>
-                {customPrompt ? 'Custom Driver Priority Active' : 'Add Custom Comparison Prompt'}
+                {customPrompt ? 'Custom Driver Priority Active' : 'Add Custom Driver Prompt'}
               </Text>
               <Text style={styles.promptSubText} numberOfLines={1}>
                 {customPrompt
                   ? `"${customPrompt}"`
-                  : 'e.g. "I want the car best suited for a gentle daily Cairo commuter..."'}
+                  : 'e.g. "I want a daily Cairo commuter with low fuel usage..."'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
+
+        {/* EXPLICIT COMPARE BUTTON ACTION */}
+        <View style={styles.compareBtnWrapper}>
+          <TouchableOpacity
+            style={styles.mainCompareButton}
+            onPress={() => handleRunComparison()}
+            disabled={isAiLoading}
+            activeOpacity={0.85}
+          >
+            {isAiLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Ionicons name="flash" size={18} color="#F59E0B" />
+            )}
+            <Text style={styles.mainCompareButtonText}>
+              {isAiLoading ? 'Analyzing Vehicle Specs with Grok AI...' : 'Compare Cars with Grok AI'}
+            </Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Ask AI Chatbot Trigger Card */}
+        <TouchableOpacity
+          style={styles.askAiCardTrigger}
+          onPress={() => setIsChatModalVisible(true)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.askAiIconCircle}>
+            <Ionicons name="chatbubbles" size={18} color="#38BDF8" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.askAiCardTitle}>Ask AutoVersus AI Advisor</Text>
+            <Text style={styles.askAiCardSub}>
+              Have questions about resale value, reliability, parts, or maintenance? Chat live with AI!
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#38BDF8" />
+        </TouchableOpacity>
+
+        {/* AI Smart Decision Banner */}
+        {(hasRunComparison || isAiLoading) && (
+          <AiDecisionBanner
+            verdict={aiVerdict}
+            isLoading={isAiLoading}
+            onPersonalizePress={() => setIsPromptModalVisible(true)}
+          />
+        )}
 
         {/* Comparison Scope Filter Selector */}
         <ComparisonScopeSelector
@@ -222,7 +327,7 @@ export const ComparisonScreen: React.FC = () => {
         visible={isPromptModalVisible}
         currentPrompt={customPrompt}
         onClose={() => setIsPromptModalVisible(false)}
-        onApplyPrompt={setCustomPrompt}
+        onApplyPrompt={handleApplyPrompt}
       />
 
       <CarPickerModal
@@ -231,6 +336,12 @@ export const ComparisonScreen: React.FC = () => {
         selectedCarIds={selectedCars.map((c) => c.id)}
         onClose={() => setIsCarPickerVisible(false)}
         onSelectCar={handleSelectCarFromPicker}
+      />
+
+      <AiChatModal
+        visible={isChatModalVisible}
+        carsInComparison={selectedCars}
+        onClose={() => setIsChatModalVisible(false)}
       />
     </SafeAreaView>
   );
@@ -262,6 +373,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+  chatHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F3040',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 18,
+    gap: 6,
+  },
+  chatHeaderBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
   navTitleGroup: {
     alignItems: 'center',
   },
@@ -277,6 +402,66 @@ const styles = StyleSheet.create({
   },
   scrollBody: {
     paddingBottom: 40,
+  },
+  compareBtnWrapper: {
+    paddingHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  askAiCardTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F3040',
+    borderRadius: 16,
+    padding: 14,
+    marginHorizontal: 16,
+    marginVertical: 10,
+    gap: 12,
+    shadowColor: '#0F3040',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  askAiIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  askAiCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  askAiCardSub: {
+    fontSize: 11.5,
+    color: '#94A3B8',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  mainCompareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F3040',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    gap: 10,
+    shadowColor: '#0F3040',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  mainCompareButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   promptBarWrapper: {
     paddingHorizontal: 16,
