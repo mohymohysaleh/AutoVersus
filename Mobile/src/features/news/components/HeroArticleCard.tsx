@@ -24,7 +24,7 @@ export const HeroArticleCard: React.FC<HeroArticleCardProps> = ({ article, onPre
       <View style={styles.content}>
         {/* Red Category Pill */}
         <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{article.category.toUpperCase()}</Text>
+          <Text style={styles.categoryText}>{(article.category || 'News').toUpperCase()}</Text>
         </View>
 
         {/* Title */}

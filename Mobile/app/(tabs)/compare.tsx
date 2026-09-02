@@ -1,24 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { ComparisonScreen } from '../../src/features/comparison/screens/ComparisonScreen';
 
-export default function CompareScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>AutoVersus Spec Battle Matrix</Text>
-    </SafeAreaView>
-  );
+export default function CompareTab() {
+  return <ComparisonScreen />;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
-});

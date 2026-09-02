@@ -27,7 +27,7 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPre
       <View style={styles.contentContainer}>
         <View>
           {/* Uppercase Category Tag */}
-          <Text style={styles.categoryTag}>{article.category.toUpperCase()}</Text>
+          <Text style={styles.categoryTag}>{(article.category || 'News').toUpperCase()}</Text>
 
           {/* Title */}
           <Text style={styles.title} numberOfLines={2}>
