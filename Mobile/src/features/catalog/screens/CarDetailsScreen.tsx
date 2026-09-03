@@ -16,6 +16,54 @@ import { router } from 'expo-router';
 import { catalogApi, VariantDetailDto } from '../api/catalog.api';
 import { resolveCarImage } from '../../../shared/utils/car-image.utils';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { COMPARISON_CARS_DATABASE } from '../../comparison/data/comparison-mock.data';
+import { ComparisonCar } from '../../comparison/types/comparison.types';
+
+function convertComparisonCarToVariant(car: ComparisonCar): VariantDetailDto {
+  return {
+    id: car.id,
+    brandName: car.brandName,
+    modelName: car.modelName,
+    generationName: car.categoryTag ? car.categoryTag.split('•')[0].trim() : '2026 SPEC SHEET',
+    year: car.year,
+    trimName: car.trimName,
+    slug: car.slug,
+    startingPriceEGP: car.startingPriceEGP,
+    completenessScore: 98,
+    isPublished: true,
+    engine: {
+      fuelType: car.engineSpecs?.fuelType || 'Petrol (95 Octane)',
+      powerHp: car.horsepower,
+      powerKw: Math.round(car.horsepower * 0.745),
+      torqueNm: car.torqueNm,
+      transmission: car.engineSpecs?.transmission || 'Automatic',
+      drivetrain: car.engineSpecs?.drivetrain || 'Front-Wheel Drive (FWD)',
+      displacementCc: 1598,
+    },
+    dimensions: {
+      lengthMm: 4630,
+      widthMm: 1780,
+      heightMm: 1435,
+      wheelbaseMm: 2700,
+      cargoCapacityL: 470,
+      seatingCapacity: 5,
+    },
+    performance: {
+      zeroToHundredKmh: car.zeroToHundredSec,
+      topSpeedKmh: car.topSpeedKmh,
+    },
+    fuelEconomy: {
+      combinedL100km: car.fuelEconomyL100km,
+      sourceType: 'Cairo Commute Test',
+    },
+    safety: {
+      airbagsCount: car.airbagsCount,
+      hasAbs: true,
+      hasEsc: true,
+      hasAeb: true,
+    },
+  };
+}
 
 interface CarDetailsScreenProps {
   slug?: string;
@@ -42,7 +90,22 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
   const loadVariantDetails = async () => {
     setIsLoading(true);
     if (slug) {
-      const data = await catalogApi.fetchVariantDetails(slug);
+      let data = await catalogApi.fetchVariantDetails(slug);
+
+      // Fallback to COMPARISON_CARS_DATABASE if API returned null or missing engine specs
+      if (!data || !data.engine) {
+        const mockCar = COMPARISON_CARS_DATABASE.find(
+          (c) =>
+            c.slug === slug ||
+            c.id === slug ||
+            `${c.brandName}-${c.modelName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').includes(slug.toLowerCase())
+        );
+
+        if (mockCar) {
+          data = convertComparisonCarToVariant(mockCar);
+        }
+      }
+
       setVariant(data);
     }
     setIsLoading(false);

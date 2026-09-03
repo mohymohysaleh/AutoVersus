@@ -39,7 +39,7 @@ export const ComparisonScopeSelector: React.FC<ComparisonScopeSelectorProps> = (
               <Ionicons
                 name={item.icon}
                 size={15}
-                color={isActive ? '#FFFFFF' : '#0F3040'}
+                color={isActive ? '#F59E0B' : '#0F2942'}
               />
               <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
                 {item.label}
@@ -54,39 +54,43 @@ export const ComparisonScopeSelector: React.FC<ComparisonScopeSelectorProps> = (
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 12,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   scrollContainer: {
     paddingHorizontal: 16,
     gap: 8,
+    alignItems: 'center',
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 14,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 22,
     gap: 6,
   },
   pillActive: {
-    backgroundColor: '#0F3040',
-    borderColor: '#0F3040',
-    shadowColor: '#0F3040',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: '#0F2942',
+    borderColor: '#0F2942',
+    shadowColor: '#0F2942',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 4,
   },
   pillText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
+    fontWeight: '700',
+    color: '#334155',
   },
   pillTextActive: {
-    color: '#FFFFFF',
+    color: '#F59E0B',
     fontWeight: '800',
   },
 });

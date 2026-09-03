@@ -12,7 +12,12 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
   const { t } = useLanguage();
 
   return (
-    <View nativeID="home-quiz-banner-container" testID="home-quiz-banner-container" style={styles.container}>
+    <TouchableOpacity
+      testID="home-quiz-banner-container"
+      style={styles.container}
+      onPress={onQuizPress}
+      activeOpacity={0.88}
+    >
       {/* Left Content Area */}
       <View nativeID="home-quiz-banner-content" testID="home-quiz-banner-content" style={styles.contentLeft}>
         {/* Header Tag */}
@@ -32,23 +37,19 @@ export const FindMyCarBanner: React.FC<FindMyCarBannerProps> = ({ onQuizPress })
         </Text>
 
         {/* CTA Quiz Button */}
-        <TouchableOpacity
-          testID="home-take-quiz-button"
-          accessibilityLabel="Take 2-Min Lifestyle Spec Quiz"
+        <View
           style={styles.quizButton}
-          onPress={onQuizPress}
-          activeOpacity={0.85}
         >
           <Text style={styles.quizButtonText}>{t('home.startQuiz')}</Text>
           <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Right Circle Graphic */}
       <View nativeID="home-quiz-banner-graphic" style={styles.graphicCircle}>
         <Ionicons name="car-outline" size={42} color="#FFFFFF" />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

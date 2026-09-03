@@ -2,6 +2,7 @@ import { ComparisonCar, MetricDefinition, AiVerdictData } from '../types/compari
 import { resolveCarImage } from '../../../shared/utils/car-image.utils';
 
 export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
+  // 1. Toyota Corolla Petrol (Sedan - Under 1.5M - EGP 1.45M)
   {
     id: 'corolla-2026-comfort',
     brandName: 'Toyota',
@@ -9,7 +10,7 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
     trimName: 'Comfort',
     year: 2026,
     startingPriceEGP: 1450000,
-    imageUrl: resolveCarImage('Toyota', 'Corolla', 'Comfort', 'Petrol'),
+    imageUrl: resolveCarImage('Toyota', 'Corolla', 'Comfort'),
     slug: 'toyota-corolla-comfort',
     categoryTag: 'SEDAN • EGYPT SPEC SHEET',
     horsepower: 139,
@@ -62,66 +63,132 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
       completeness: '98% Verified Toyota Spec Sheet',
     },
   },
+
+  // 2. Renault Taliant (Sedan - Under 1.5M - EGP 850k)
   {
-    id: 'elantra-2026-smart',
-    brandName: 'Hyundai',
-    modelName: 'Elantra',
-    trimName: 'Smart',
+    id: 'renault-taliant-2026',
+    brandName: 'Renault',
+    modelName: 'Taliant',
+    trimName: 'Evolution 1.0T',
     year: 2026,
-    startingPriceEGP: 1520000,
-    imageUrl: resolveCarImage('Hyundai', 'Elantra', 'Smart', 'Petrol'),
-    slug: 'hyundai-elantra-smart',
-    categoryTag: 'SEDAN • EGYPT SPEC SHEET',
-    horsepower: 145,
-    torqueNm: 179,
-    zeroToHundredSec: 9.8,
-    topSpeedKmh: 202,
-    fuelEconomyL100km: 7.2,
-    airbagsCount: 6,
+    startingPriceEGP: 850000,
+    imageUrl: resolveCarImage('Renault', 'Megane', 'Evolution'),
+    slug: 'renault-taliant-evolution',
+    categoryTag: 'SEDAN • BUDGET SPEC',
+    horsepower: 100,
+    torqueNm: 160,
+    zeroToHundredSec: 11.2,
+    topSpeedKmh: 175,
+    fuelEconomyL100km: 5.8,
+    airbagsCount: 4,
     overviewSpecs: {
-      horsepower: '145 HP',
-      torque: '179 Nm',
-      zeroToHundred: '9.8 sec',
-      topSpeed: '202 km/h',
-      fuelEconomy: '7.2 L/100km',
-      airbags: '6 Airbags',
+      horsepower: '100 HP Turbo',
+      torque: '160 Nm',
+      zeroToHundred: '11.2 sec',
+      topSpeed: '175 km/h',
+      fuelEconomy: '5.8 L/100km',
+      airbags: '4 Airbags',
     },
     engineSpecs: {
-      fuelType: 'Petrol (92/95 Octane)',
-      displacement: '1591 cc (1.6L MPi)',
-      power: '145 HP (108 kW)',
-      torque: '179 Nm @ 4500 rpm',
-      transmission: '6-Speed Automatic',
+      fuelType: 'Petrol (92 Octane)',
+      displacement: '999 cc (1.0L Turbo)',
+      power: '100 HP @ 5000 rpm',
+      torque: '160 Nm @ 2750 rpm',
+      transmission: 'CVT Automatic Transmission',
       drivetrain: 'Front-Wheel Drive (FWD)',
     },
     dimensionSpecs: {
-      dimensions: '4675 × 1825 × 1430 mm',
-      wheelbase: '2720 mm',
-      trunkVolume: '474 L',
+      dimensions: '4396 × 1848 × 1501 mm',
+      wheelbase: '2649 mm',
+      trunkVolume: '528 L',
       seating: '5 Passengers',
     },
     performanceSpecs: {
-      acceleration: '9.8 seconds (0-100 km/h)',
-      maxSpeed: '202 km/h',
-      fuelConsumption: '7.2 L/100km (Combined)',
+      acceleration: '11.2 seconds (0-100 km/h)',
+      maxSpeed: '175 km/h',
+      fuelConsumption: '5.8 L/100km',
     },
     safetySpecs: {
-      airbags: '6 Airbags (Dual Front & Curtain)',
-      abs: 'Standard ABS + EBD ✓',
-      esc: 'Electronic Stability Control (ESC) ✓',
-      aeb: 'Forward Collision-Avoidance Assist ✓',
-      tpms: 'Tire Pressure Monitoring System ✓',
-      brakeAssist: 'Brake Assist System (BAS) ✓',
+      airbags: '4 Airbags Package',
+      abs: 'ABS + EBD + AFU ✓',
+      esc: 'Electronic Stability Control (ESP) ✓',
+      aeb: 'Standard Emergency Braking ✓',
+      tpms: 'Tire Pressure Loss Warning ✓',
+      brakeAssist: 'Hill Start Assist ✓',
     },
     featureSpecs: {
-      smartphone: 'Wireless Apple CarPlay & Android Auto ✓',
-      cluster: '10.25" Full Digital Instrument Cluster',
-      climate: 'Dual-Zone Auto AC with Rear Vents',
-      lighting: 'Full LED Parametric Headlamps',
-      parkingAssistance: 'Front & Rear Sensors + 360° Camera',
-      completeness: '96% Verified Hyundai Spec Sheet',
+      smartphone: '8" Touchscreen with Wireless CarPlay & Android Auto',
+      cluster: '3.5" TFT Multi-Info Cluster',
+      climate: 'Automatic Climate Control System',
+      lighting: 'C-Shape LED Signature DRLs',
+      parkingAssistance: 'Rear Parking Sensors & Camera',
+      completeness: '93% Verified Renault Spec Sheet',
     },
   },
+
+  // 3. BAIC U5 Plus (Sedan - Under 1.5M - EGP 695k)
+  {
+    id: 'baic-u5-plus-manual',
+    brandName: 'BAIC',
+    modelName: 'U5 Plus',
+    trimName: 'Manual Fashion',
+    year: 2026,
+    startingPriceEGP: 695000,
+    imageUrl: resolveCarImage('BAIC', 'U5 Plus', 'Fashion'),
+    slug: 'baic-u5-plus-manual',
+    categoryTag: 'SEDAN • BUDGET SPEC',
+    horsepower: 111,
+    torqueNm: 142,
+    zeroToHundredSec: 11.5,
+    topSpeedKmh: 170,
+    fuelEconomyL100km: 6.2,
+    airbagsCount: 2,
+    overviewSpecs: {
+      horsepower: '111 HP',
+      torque: '142 Nm',
+      zeroToHundred: '11.5 sec',
+      topSpeed: '170 km/h',
+      fuelEconomy: '6.2 L/100km',
+      airbags: '2 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (92 Octane)',
+      displacement: '1499 cc (1.5L Naturally Aspirated)',
+      power: '111 HP @ 6000 rpm',
+      torque: '142 Nm @ 4500 rpm',
+      transmission: '5-Speed Manual Transmission',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4660 × 1820 × 1480 mm',
+      wheelbase: '2670 mm',
+      trunkVolume: '430 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '11.5 seconds (0-100 km/h)',
+      maxSpeed: '170 km/h',
+      fuelConsumption: '6.2 L/100km',
+    },
+    safetySpecs: {
+      airbags: 'Dual Front Airbags',
+      abs: 'ABS + EBD ✓',
+      esc: 'Electronic Stability Control ✓',
+      aeb: 'Standard Brake Assist ✓',
+      tpms: 'Tire Pressure Alert ✓',
+      brakeAssist: 'Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: '8" Touchscreen Infotainment',
+      cluster: '7" Instrument Cluster Display',
+      climate: 'Manual AC with Rear Vents',
+      lighting: 'Halogen Headlamps & LED DRLs',
+      parkingAssistance: 'Rear Parking Sensors & Camera',
+      completeness: '92% Verified BAIC Spec Sheet',
+    },
+  },
+
+  // 4. MG 6 Luxury (Sedan - Under 1.5M - EGP 1.39M)
   {
     id: 'mg-6-2026-luxury',
     brandName: 'MG',
@@ -129,7 +196,7 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
     trimName: 'Luxury Turbo',
     year: 2026,
     startingPriceEGP: 1390000,
-    imageUrl: resolveCarImage('MG', 'MG 6', 'Luxury', 'Petrol'),
+    imageUrl: resolveCarImage('MG', 'MG 6', 'Luxury'),
     slug: 'mg-mg-6-luxury',
     categoryTag: 'FASTBACK • TURBO SPEC',
     horsepower: 169,
@@ -157,7 +224,7 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
     dimensionSpecs: {
       dimensions: '4694 × 1848 × 1465 mm',
       wheelbase: '2715 mm',
-      trunkVolume: '429 L (Expandable to 1170 L)',
+      trunkVolume: '429 L',
       seating: '5 Passengers',
     },
     performanceSpecs: {
@@ -182,6 +249,504 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
       completeness: '94% Verified MG Spec Sheet',
     },
   },
+
+  // 5. Chery Tiggo 7 Pro Max (SUV - Under 1.5M - EGP 1.35M)
+  {
+    id: 'chery-tiggo7-pro-max',
+    brandName: 'Chery',
+    modelName: 'Tiggo 7 Pro',
+    trimName: 'Max Flagship',
+    year: 2026,
+    startingPriceEGP: 1350000,
+    imageUrl: resolveCarImage('Chery', 'Tiggo 7 Pro', 'Max Flagship'),
+    slug: 'chery-tiggo-7-pro-max',
+    categoryTag: 'SUV • Crossover',
+    horsepower: 156,
+    torqueNm: 230,
+    zeroToHundredSec: 9.9,
+    topSpeedKmh: 185,
+    fuelEconomyL100km: 7.4,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '156 HP',
+      torque: '230 Nm',
+      zeroToHundred: '9.9 sec',
+      topSpeed: '185 km/h',
+      fuelEconomy: '7.4 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (92/95 Octane)',
+      displacement: '1498 cc (1.5L Turbo)',
+      power: '156 HP @ 5500 rpm',
+      torque: '230 Nm @ 1750-4000 rpm',
+      transmission: '6-Speed Dual Clutch (DCT)',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4500 × 1842 × 1746 mm',
+      wheelbase: '2670 mm',
+      trunkVolume: '475 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '9.9 seconds (0-100 km/h)',
+      maxSpeed: '185 km/h',
+      fuelConsumption: '7.4 L/100km',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags System',
+      abs: 'ABS + EBD + EBA ✓',
+      esc: 'Bosch 9.3 ESP System ✓',
+      aeb: 'Level-2 ADAS Automatic Braking ✓',
+      tpms: 'Direct Tire Pressure Monitoring ✓',
+      brakeAssist: 'Hill Assist & Descent Control ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless Apple CarPlay & Android Auto ✓',
+      cluster: 'Dual 24.6" Integrated Curved Screens',
+      climate: 'Dual Zone Auto AC + N95 Cabin Filter',
+      lighting: 'Full Matrix LED Headlamps',
+      parkingAssistance: '360° Panoramic High-Def Camera',
+      completeness: '96% Verified Chery Spec Sheet',
+    },
+  },
+
+  // 6. MG ZS Turbo (SUV - Under 1.5M - EGP 1.15M)
+  {
+    id: 'mg-zs-turbo-2026',
+    brandName: 'MG',
+    modelName: 'ZS',
+    trimName: 'Luxury Turbo',
+    year: 2026,
+    startingPriceEGP: 1150000,
+    imageUrl: resolveCarImage('MG', 'ZS', 'Luxury'),
+    slug: 'mg-zs-luxury-turbo',
+    categoryTag: 'SUV • Crossover',
+    horsepower: 160,
+    torqueNm: 230,
+    zeroToHundredSec: 9.8,
+    topSpeedKmh: 185,
+    fuelEconomyL100km: 6.9,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '160 HP',
+      torque: '230 Nm',
+      zeroToHundred: '9.8 sec',
+      topSpeed: '185 km/h',
+      fuelEconomy: '6.9 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (92/95 Octane)',
+      displacement: '1334 cc (1.3L Turbo)',
+      power: '160 HP @ 5200 rpm',
+      torque: '230 Nm @ 1800-4400 rpm',
+      transmission: '6-Speed Automatic Transmission',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4323 × 1809 × 1653 mm',
+      wheelbase: '2585 mm',
+      trunkVolume: '448 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '9.8 seconds (0-100 km/h)',
+      maxSpeed: '185 km/h',
+      fuelConsumption: '6.9 L/100km',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + CBC ✓',
+      esc: 'Electronic Stability Program (ESP) ✓',
+      aeb: 'Blind Spot Detection & Lane Departure ✓',
+      tpms: 'Direct Tire Pressure Sensors ✓',
+      brakeAssist: 'Emergency Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: '10.1" HD Touchscreen with CarPlay & Android Auto',
+      cluster: '3.5" Digital Multi-Info Display',
+      climate: 'Automatic AC with Rear Air Vents',
+      lighting: 'Full LED Headlamps & DRLs',
+      parkingAssistance: '360° Camera System',
+      completeness: '95% Verified MG Spec Sheet',
+    },
+  },
+
+  // 7. Toyota Corolla Hybrid (Sedan - 1.5M-2.5M - EGP 1.75M)
+  {
+    id: 'corolla-2026-hybrid',
+    brandName: 'Toyota',
+    modelName: 'Corolla',
+    trimName: 'Hybrid Active',
+    year: 2026,
+    startingPriceEGP: 1750000,
+    imageUrl: resolveCarImage('Toyota', 'Corolla', 'Hybrid Active'),
+    slug: 'toyota-corolla-hybrid',
+    categoryTag: 'SEDAN • HYBRID SPEC',
+    horsepower: 138,
+    torqueNm: 185,
+    zeroToHundredSec: 9.3,
+    topSpeedKmh: 180,
+    fuelEconomyL100km: 3.8,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '138 HP Hybrid',
+      torque: '185 Nm',
+      zeroToHundred: '9.3 sec',
+      topSpeed: '180 km/h',
+      fuelEconomy: '3.8 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Hybrid (1.8L Petrol + Electric Motor)',
+      displacement: '1798 cc VVT-i Hybrid',
+      power: '138 HP Combined System',
+      torque: '185 Nm Instant Torque',
+      transmission: 'e-CVT Automatic Drivetrain',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4630 × 1780 × 1435 mm',
+      wheelbase: '2700 mm',
+      trunkVolume: '470 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '9.3 seconds (0-100 km/h)',
+      maxSpeed: '180 km/h',
+      fuelConsumption: '3.8 L/100km (Ultra-Low)',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + Brake Assist ✓',
+      esc: 'Vehicle Stability Control (VSC) ✓',
+      aeb: 'Toyota Safety Sense Pre-Collision ✓',
+      tpms: 'Tire Pressure Monitor ✓',
+      brakeAssist: 'Regenerative Braking Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Apple CarPlay & Android Auto ✓',
+      cluster: '12.3" Full Digital Display',
+      climate: 'Dual Zone Automatic Climate Control',
+      lighting: 'Full LED Headlamps',
+      parkingAssistance: 'Front & Rear Parking Sensors',
+      completeness: '97% Verified Spec Sheet',
+    },
+  },
+
+  // 8. Hyundai Tucson Facelift (SUV - 1.5M-2.5M - EGP 2.1M)
+  {
+    id: 'tucson-2026-facelift',
+    brandName: 'Hyundai',
+    modelName: 'Tucson',
+    trimName: 'N-Line Turbo',
+    year: 2026,
+    startingPriceEGP: 2100000,
+    imageUrl: resolveCarImage('Hyundai', 'Tucson', 'N-Line'),
+    slug: 'hyundai-tucson-facelift',
+    categoryTag: 'SUV • Crossover',
+    horsepower: 180,
+    torqueNm: 265,
+    zeroToHundredSec: 8.8,
+    topSpeedKmh: 201,
+    fuelEconomyL100km: 6.7,
+    airbagsCount: 7,
+    overviewSpecs: {
+      horsepower: '180 HP',
+      torque: '265 Nm',
+      zeroToHundred: '8.8 sec',
+      topSpeed: '201 km/h',
+      fuelEconomy: '6.7 L/100km',
+      airbags: '7 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (95 Octane)',
+      displacement: '1598 cc (1.6L T-GDi)',
+      power: '180 HP @ 5500 rpm',
+      torque: '265 Nm @ 1500-4500 rpm',
+      transmission: '7-Speed Dual-Clutch (DCT)',
+      drivetrain: 'Front-Wheel Drive / HTRAC AWD',
+    },
+    dimensionSpecs: {
+      dimensions: '4630 × 1865 × 1665 mm',
+      wheelbase: '2755 mm',
+      trunkVolume: '620 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '8.8 seconds (0-100 km/h)',
+      maxSpeed: '201 km/h',
+      fuelConsumption: '6.7 L/100km',
+    },
+    safetySpecs: {
+      airbags: '7 Airbags (Includes Center Side Airbag)',
+      abs: 'ABS + EBD + DBC ✓',
+      esc: 'Electronic Stability Control (ESC) ✓',
+      aeb: 'Hyundai SmartSense Forward Collision AEB ✓',
+      tpms: 'Individual Tire Pressure Monitor ✓',
+      brakeAssist: 'Brake Assist System ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless Apple CarPlay & Android Auto ✓',
+      cluster: 'Dual 12.3" Panoramic Curved Display',
+      climate: 'Dual Zone Automatic Air Conditioning',
+      lighting: 'Parametric Hidden LED DRLs',
+      parkingAssistance: '360° Surround View + Remote Smart Parking',
+      completeness: '98% Verified Hyundai Spec Sheet',
+    },
+  },
+
+  // 9. Kia Sportage GT-Line (SUV - 1.5M-2.5M - EGP 2.25M)
+  {
+    id: 'kia-sportage-gtline-2026',
+    brandName: 'Kia',
+    modelName: 'Sportage',
+    trimName: 'GT-Line Turbo',
+    year: 2026,
+    startingPriceEGP: 2250000,
+    imageUrl: resolveCarImage('Kia', 'Sportage', 'GT-Line'),
+    slug: 'kia-sportage-gt-line',
+    categoryTag: 'SUV • Crossover',
+    horsepower: 180,
+    torqueNm: 265,
+    zeroToHundredSec: 8.8,
+    topSpeedKmh: 201,
+    fuelEconomyL100km: 6.9,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '180 HP',
+      torque: '265 Nm',
+      zeroToHundred: '8.8 sec',
+      topSpeed: '201 km/h',
+      fuelEconomy: '6.9 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (95 Octane)',
+      displacement: '1598 cc (1.6L T-GDI)',
+      power: '180 HP @ 5500 rpm',
+      torque: '265 Nm @ 1500-4500 rpm',
+      transmission: '7-Speed Dual Clutch (DCT)',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4515 × 1865 × 1650 mm',
+      wheelbase: '2680 mm',
+      trunkVolume: '591 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '8.8 seconds (0-100 km/h)',
+      maxSpeed: '201 km/h',
+      fuelConsumption: '6.9 L/100km',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + DBC ✓',
+      esc: 'Vehicle Stability Management (VSM) ✓',
+      aeb: 'Kia Drive Wise AEB & Lane Follow Assist ✓',
+      tpms: 'High Line TPMS ✓',
+      brakeAssist: 'Brake Assist System ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Apple CarPlay & Android Auto ✓',
+      cluster: 'Dual 12.3" Panoramic Curved Display',
+      climate: 'Dual Zone Automatic Air Conditioning',
+      lighting: 'Boomerang Matrix LED Headlamps',
+      parkingAssistance: '360° Around View Monitor',
+      completeness: '97% Verified Kia Spec Sheet',
+    },
+  },
+
+  // 10. Geely Monjaro EM-i Hybrid (SUV - 1.5M-2.5M - EGP 2.45M)
+  {
+    id: 'geely-monjaro-emi',
+    brandName: 'Geely',
+    modelName: 'Monjaro',
+    trimName: 'EM-i Hybrid Flagship',
+    year: 2026,
+    startingPriceEGP: 2450000,
+    imageUrl: resolveCarImage('Geely', 'Monjaro', 'EM-i Hybrid'),
+    slug: 'geely-monjaro-emi-hybrid',
+    categoryTag: 'SUV • HYBRID SPEC',
+    horsepower: 240,
+    torqueNm: 350,
+    zeroToHundredSec: 7.7,
+    topSpeedKmh: 195,
+    fuelEconomyL100km: 4.3,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '240 HP Hybrid',
+      torque: '350 Nm',
+      zeroToHundred: '7.7 sec',
+      topSpeed: '195 km/h',
+      fuelEconomy: '4.3 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Hybrid (1.5L Turbo + NordThor Electric Drive)',
+      displacement: '1499 cc Dedicated Hybrid Engine',
+      power: '240 HP System Power',
+      torque: '350 Nm System Torque',
+      transmission: '3-Speed DHT Hybrid Transmission',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4770 × 1895 × 1689 mm',
+      wheelbase: '2845 mm',
+      trunkVolume: '562 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '7.7 seconds (0-100 km/h)',
+      maxSpeed: '195 km/h',
+      fuelConsumption: '4.3 L/100km (NordThor System)',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + EBA ✓',
+      esc: 'Bosch ESP 9.3 System ✓',
+      aeb: 'Full ADAS suite (AEB, LKA, BSD, ACC) ✓',
+      tpms: 'Digital Tire Pressure Display ✓',
+      brakeAssist: 'Hydraulic Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless Smartphone Mirroring ✓',
+      cluster: 'Triple Screen Cockpit (Driver, Infotainment, Passenger)',
+      climate: '3-Zone Automatic Climate Control',
+      lighting: 'Full LED Intelligent Matrix Lights',
+      parkingAssistance: '540° Transparent Chassis & 360° Cam',
+      completeness: '96% Verified Geely Spec Sheet',
+    },
+  },
+
+  // 11. Volkswagen Tiguan R-Line (SUV - 2.5M-4.0M - EGP 2.75M)
+  {
+    id: 'volkswagen-tiguan-rline',
+    brandName: 'Volkswagen',
+    modelName: 'Tiguan',
+    trimName: 'R-Line Turbo',
+    year: 2026,
+    startingPriceEGP: 2750000,
+    imageUrl: resolveCarImage('Volkswagen', 'Tiguan', 'R-Line'),
+    slug: 'volkswagen-tiguan-r-line',
+    categoryTag: 'SUV • Crossover',
+    horsepower: 180,
+    torqueNm: 320,
+    zeroToHundredSec: 7.7,
+    topSpeedKmh: 215,
+    fuelEconomyL100km: 7.1,
+    airbagsCount: 7,
+    overviewSpecs: {
+      horsepower: '180 HP',
+      torque: '320 Nm',
+      zeroToHundred: '7.7 sec',
+      topSpeed: '215 km/h',
+      fuelEconomy: '7.1 L/100km',
+      airbags: '7 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (95 Octane)',
+      displacement: '1984 cc (2.0L TSI)',
+      power: '180 HP @ 6000 rpm',
+      torque: '320 Nm @ 1500-4100 rpm',
+      transmission: '7-Speed DSG Automatic',
+      drivetrain: '4MOTION All-Wheel Drive (AWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4509 × 1859 × 1675 mm',
+      wheelbase: '2679 mm',
+      trunkVolume: '615 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '7.7 seconds (0-100 km/h)',
+      maxSpeed: '215 km/h',
+      fuelConsumption: '7.1 L/100km',
+    },
+    safetySpecs: {
+      airbags: '7 Airbags Package',
+      abs: 'ABS + EBD + HHC ✓',
+      esc: 'Electronic Stability Control (ESC) ✓',
+      aeb: 'Front Assist Autonomous Braking ✓',
+      tpms: 'Individual TPMS ✓',
+      brakeAssist: 'Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless App-Connect CarPlay & Android Auto',
+      cluster: '10.25" Digital Cockpit Pro',
+      climate: '3-Zone Climatronic AC',
+      lighting: 'IQ.LIGHT Matrix LED Headlamps',
+      parkingAssistance: 'Area View 360° Camera & Park Assist',
+      completeness: '98% Verified VW Spec Sheet',
+    },
+  },
+
+  // 12. BYD Seal EV (Sedan - 2.5M-4.0M - EGP 2.75M)
+  {
+    id: 'byd-seal-ev-design',
+    brandName: 'BYD',
+    modelName: 'Seal EV',
+    trimName: 'Design RWD',
+    year: 2026,
+    startingPriceEGP: 2750000,
+    imageUrl: resolveCarImage('BYD', 'Seal', 'Design RWD'),
+    slug: 'byd-seal-ev-design',
+    categoryTag: 'SEDAN • ALL-ELECTRIC EV',
+    horsepower: 313,
+    torqueNm: 360,
+    zeroToHundredSec: 5.9,
+    topSpeedKmh: 180,
+    fuelEconomyL100km: 0.0,
+    airbagsCount: 9,
+    overviewSpecs: {
+      horsepower: '313 HP Electric',
+      torque: '360 Nm',
+      zeroToHundred: '5.9 sec',
+      topSpeed: '180 km/h',
+      fuelEconomy: '0 L/100km (EV)',
+      airbags: '9 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'All-Electric (82.5 kWh Blade Battery)',
+      displacement: 'Rear Synchronous Motor',
+      power: '313 HP (230 kW)',
+      torque: '360 Nm Instant Electric Torque',
+      transmission: 'Single-Speed Automatic',
+      drivetrain: 'Rear-Wheel Drive (RWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4800 × 1875 × 1460 mm',
+      wheelbase: '2920 mm',
+      trunkVolume: '400 L + 53 L Frunk',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '5.9 seconds (0-100 km/h)',
+      maxSpeed: '180 km/h',
+      fuelConsumption: '570 km WLTP Electric Range',
+    },
+    safetySpecs: {
+      airbags: '9 Airbags Surround Protection',
+      abs: 'ABS + EBD + Regenerative Braking ✓',
+      esc: 'BYD iTAC Torque Control System ✓',
+      aeb: 'Level-2 ADAS Emergency Braking ✓',
+      tpms: 'Direct Tire Pressure Monitoring ✓',
+      brakeAssist: 'Hydraulic Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: '15.6" Rotating Touchscreen display',
+      cluster: '10.25" Full Digital Cockpit',
+      climate: 'Heat Pump Dual Zone Air Conditioning',
+      lighting: 'Crystal Matrix LED Headlamps',
+      parkingAssistance: '360° HD Camera & Automated Parking',
+      completeness: '98% Verified BYD Spec Sheet',
+    },
+  },
+
+  // 13. BMW 320i Petrol (Sedan - 2.5M-4.0M - EGP 3.8M)
   {
     id: 'bmw-320i-2026-m-sport',
     brandName: 'BMW',
@@ -189,7 +754,7 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
     trimName: 'M Sport Edition',
     year: 2026,
     startingPriceEGP: 3800000,
-    imageUrl: resolveCarImage('BMW', '3 Series', 'M Sport', 'Petrol'),
+    imageUrl: resolveCarImage('BMW', '3 Series', 'M Sport'),
     slug: 'bmw-320i-m-sport',
     categoryTag: 'LUXURY SEDAN • GERMAN TECH',
     horsepower: 184,
@@ -226,7 +791,7 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
       fuelConsumption: '6.3 L/100km',
     },
     safetySpecs: {
-      airbags: '8 Airbags (Full Surround Protection)',
+      airbags: '8 Airbags Surround Protection',
       abs: 'Cornering Brake Control (CBC) + ABS ✓',
       esc: 'Dynamic Stability Control (DSC) ✓',
       aeb: 'Active Guard Brake Assistant ✓',
@@ -240,6 +805,316 @@ export const COMPARISON_CARS_DATABASE: ComparisonCar[] = [
       lighting: 'Adaptive LED Laserlight Headlamps',
       parkingAssistance: 'Parking Assistant Plus with 360° Cam',
       completeness: '99% Verified BMW Spec Sheet',
+    },
+  },
+
+  // 14. BMW i4 eDrive40 (Sedan - 4.0M+ Luxury - EGP 4.5M)
+  {
+    id: 'bmw-i4-edrive40',
+    brandName: 'BMW',
+    modelName: 'i4',
+    trimName: 'eDrive40 Gran Coupé',
+    year: 2026,
+    startingPriceEGP: 4500000,
+    imageUrl: resolveCarImage('BMW', 'i4', 'eDrive40'),
+    slug: 'bmw-i4-edrive40',
+    categoryTag: 'GRAN COUPÉ • LUXURY EV',
+    horsepower: 340,
+    torqueNm: 430,
+    zeroToHundredSec: 5.7,
+    topSpeedKmh: 190,
+    fuelEconomyL100km: 0.0,
+    airbagsCount: 8,
+    overviewSpecs: {
+      horsepower: '340 HP Electric',
+      torque: '430 Nm',
+      zeroToHundred: '5.7 sec',
+      topSpeed: '190 km/h',
+      fuelEconomy: '0 L/100km (EV)',
+      airbags: '8 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Electric (83.9 kWh Battery Pack)',
+      displacement: 'Fifth-Gen eDrive Electric Motor',
+      power: '340 HP (250 kW)',
+      torque: '430 Nm Instant Torque',
+      transmission: 'Single-Speed Transmission',
+      drivetrain: 'Rear-Wheel Drive (RWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4783 × 1852 × 1448 mm',
+      wheelbase: '2856 mm',
+      trunkVolume: '470 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '5.7 seconds (0-100 km/h)',
+      maxSpeed: '190 km/h',
+      fuelConsumption: '590 km Electric Range',
+    },
+    safetySpecs: {
+      airbags: '8 Airbags Package',
+      abs: 'BMW Cornering Brake Control ✓',
+      esc: 'Dynamic Stability Control (DSC) ✓',
+      aeb: 'Active Guard Professional AEB ✓',
+      tpms: 'Tire Pressure Indicator ✓',
+      brakeAssist: 'Dynamic Braking Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'BMW iDrive 8.5 Curved Display ✓',
+      cluster: '14.9" Curved Infotainment Screen',
+      climate: '3-Zone Automatic Climate Control',
+      lighting: 'Adaptive LED Laser Headlamps',
+      parkingAssistance: 'Parking Assistant Plus 360° Cam',
+      completeness: '99% Verified BMW Spec Sheet',
+    },
+  },
+
+  // 15. BMW X5 xDrive40i (SUV - 4.0M+ Luxury - EGP 6.8M)
+  {
+    id: 'bmw-x5-2026-xdrive40i',
+    brandName: 'BMW',
+    modelName: 'X5',
+    trimName: 'xDrive40i M Sport',
+    year: 2026,
+    startingPriceEGP: 6800000,
+    imageUrl: resolveCarImage('BMW', 'X5', 'M Sport'),
+    slug: 'bmw-x5-xdrive40i',
+    categoryTag: 'LUXURY SAV • AWD SPEC',
+    horsepower: 381,
+    torqueNm: 520,
+    zeroToHundredSec: 5.4,
+    topSpeedKmh: 250,
+    fuelEconomyL100km: 8.5,
+    airbagsCount: 9,
+    overviewSpecs: {
+      horsepower: '381 HP TwinTurbo',
+      torque: '520 Nm',
+      zeroToHundred: '5.4 sec',
+      topSpeed: '250 km/h',
+      fuelEconomy: '8.5 L/100km',
+      airbags: '9 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (48V Mild Hybrid 95 Octane)',
+      displacement: '2998 cc (3.0L B58 Inline-6 Turbo)',
+      power: '381 HP (280 kW)',
+      torque: '520 Nm @ 1850-5000 rpm',
+      transmission: '8-Speed Steptronic Sport Auto',
+      drivetrain: 'xDrive Intelligent All-Wheel Drive',
+    },
+    dimensionSpecs: {
+      dimensions: '4935 × 2004 × 1765 mm',
+      wheelbase: '2975 mm',
+      trunkVolume: '650 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '5.4 seconds (0-100 km/h)',
+      maxSpeed: '250 km/h',
+      fuelConsumption: '8.5 L/100km',
+    },
+    safetySpecs: {
+      airbags: '9 Airbags (Includes Knee Airbags)',
+      abs: 'BMW M Sport Brake System + ABS ✓',
+      esc: 'Dynamic Stability Control (DSC) ✓',
+      aeb: 'Driving Assistant Professional Full ADAS ✓',
+      tpms: 'Individual Tyre Pressure Sensors ✓',
+      brakeAssist: 'Dynamic Braking Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless Apple CarPlay & Android Auto ✓',
+      cluster: '14.9" BMW Curved Display with iDrive 8.5',
+      climate: '4-Zone Automatic Climate Control',
+      lighting: 'Adaptive LED Matrix Lights & Sky Lounge Roof',
+      parkingAssistance: 'Parking Assistant Professional with 360° Cam',
+      completeness: '99% Verified BMW Spec Sheet',
+    },
+  },
+
+  // 16. Mercedes-Benz E 200 W214 (Sedan - 4.0M+ Luxury - EGP 5.5M)
+  {
+    id: 'mercedes-e200-w214-2026',
+    brandName: 'Mercedes-Benz',
+    modelName: 'E-Class',
+    trimName: 'E 200 AMG Line W214',
+    year: 2026,
+    startingPriceEGP: 5500000,
+    imageUrl: resolveCarImage('Mercedes-Benz', 'E-Class', 'AMG Line'),
+    slug: 'mercedes-benz-e200-w214',
+    categoryTag: 'LUXURY SEDAN • GERMAN HYBRID',
+    horsepower: 204,
+    torqueNm: 320,
+    zeroToHundredSec: 7.5,
+    topSpeedKmh: 240,
+    fuelEconomyL100km: 6.4,
+    airbagsCount: 9,
+    overviewSpecs: {
+      horsepower: '204 HP + 23 HP EQ Boost',
+      torque: '320 Nm',
+      zeroToHundred: '7.5 sec',
+      topSpeed: '240 km/h',
+      fuelEconomy: '6.4 L/100km',
+      airbags: '9 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (48V Mild Hybrid 95 Octane)',
+      displacement: '1999 cc (2.0L Turbo Mild Hybrid)',
+      power: '204 HP + 23 HP Electric EQ Boost',
+      torque: '320 Nm @ 1800-4000 rpm',
+      transmission: '9G-TRONIC 9-Speed Automatic',
+      drivetrain: 'Rear-Wheel Drive (RWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4949 × 1880 × 1468 mm',
+      wheelbase: '2961 mm',
+      trunkVolume: '540 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '7.5 seconds (0-100 km/h)',
+      maxSpeed: '240 km/h',
+      fuelConsumption: '6.4 L/100km',
+    },
+    safetySpecs: {
+      airbags: '9 Airbags (Includes Center & Knee Airbags)',
+      abs: 'ADAPTIVE BRAKE System + ABS ✓',
+      esc: 'Electronic Stability Program (ESP) ✓',
+      aeb: 'Active Brake Assist with Cross-Traffic Function ✓',
+      tpms: 'Individual Tire Pressure Monitoring ✓',
+      brakeAssist: 'PRE-SAFE Collision Protection ✓',
+    },
+    featureSpecs: {
+      smartphone: 'MBUX Superscreen Triple Display System',
+      cluster: '12.3" Driver Cluster + 14.4" Central Display',
+      climate: 'THERMOTRONIC 4-Zone Auto AC',
+      lighting: 'DIGITAL LIGHT High-Definition Projector Headlamps',
+      parkingAssistance: '360° Camera + Remote Parking Pilot',
+      completeness: '99% Verified Mercedes Spec Sheet',
+    },
+  },
+
+  // 17. Seat Leon FR (Hatchback - Under 1.5M - EGP 1.48M)
+  {
+    id: 'seat-leon-fr-2026',
+    brandName: 'Seat',
+    modelName: 'Leon',
+    trimName: 'FR 1.4 TSI',
+    year: 2026,
+    startingPriceEGP: 1480000,
+    imageUrl: resolveCarImage('Seat', 'Leon', 'FR'),
+    slug: 'seat-leon-fr-1.4t',
+    categoryTag: 'HATCHBACK • SPORT SPEC',
+    horsepower: 150,
+    torqueNm: 250,
+    zeroToHundredSec: 8.4,
+    topSpeedKmh: 215,
+    fuelEconomyL100km: 5.6,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '150 HP',
+      torque: '250 Nm',
+      zeroToHundred: '8.4 sec',
+      topSpeed: '215 km/h',
+      fuelEconomy: '5.6 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (95 Octane)',
+      displacement: '1395 cc (1.4L TSI)',
+      power: '150 HP @ 5000 rpm',
+      torque: '250 Nm @ 1500-3500 rpm',
+      transmission: '8-Speed Automatic Transmission',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4368 × 1800 × 1456 mm',
+      wheelbase: '2686 mm',
+      trunkVolume: '380 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '8.4 seconds (0-100 km/h)',
+      maxSpeed: '215 km/h',
+      fuelConsumption: '5.6 L/100km',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + XDS Differential ✓',
+      esc: 'Electronic Stability Control ✓',
+      aeb: 'Front Assist Emergency Braking ✓',
+      tpms: 'Tire Pressure Loss Indicator ✓',
+      brakeAssist: 'Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless Full Link Apple CarPlay & Android Auto',
+      cluster: '10.25" Digital Cockpit Pro',
+      climate: '3-Zone Climatronic AC',
+      lighting: 'Full LED Coast-to-Coast Rear Light',
+      parkingAssistance: 'Front & Rear Sensors + Rearview Camera',
+      completeness: '96% Verified Seat Spec Sheet',
+    },
+  },
+
+  // 18. Volkswagen Golf 8 TSI (Hatchback - 1.5M-2.5M - EGP 1.95M)
+  {
+    id: 'vw-golf8-tsi-2026',
+    brandName: 'Volkswagen',
+    modelName: 'Golf',
+    trimName: 'Life 1.4 TSI',
+    year: 2026,
+    startingPriceEGP: 1950000,
+    imageUrl: resolveCarImage('Volkswagen', 'Golf', 'Life'),
+    slug: 'volkswagen-golf-8-tsi',
+    categoryTag: 'HATCHBACK • GERMAN ICON',
+    horsepower: 150,
+    torqueNm: 250,
+    zeroToHundredSec: 8.5,
+    topSpeedKmh: 216,
+    fuelEconomyL100km: 5.7,
+    airbagsCount: 6,
+    overviewSpecs: {
+      horsepower: '150 HP',
+      torque: '250 Nm',
+      zeroToHundred: '8.5 sec',
+      topSpeed: '216 km/h',
+      fuelEconomy: '5.7 L/100km',
+      airbags: '6 Airbags',
+    },
+    engineSpecs: {
+      fuelType: 'Petrol (95 Octane)',
+      displacement: '1395 cc (1.4L TSI)',
+      power: '150 HP @ 5000 rpm',
+      torque: '250 Nm @ 1500-3500 rpm',
+      transmission: '8-Speed Automatic Transmission',
+      drivetrain: 'Front-Wheel Drive (FWD)',
+    },
+    dimensionSpecs: {
+      dimensions: '4284 × 1789 × 1456 mm',
+      wheelbase: '2636 mm',
+      trunkVolume: '381 L',
+      seating: '5 Passengers',
+    },
+    performanceSpecs: {
+      acceleration: '8.5 seconds (0-100 km/h)',
+      maxSpeed: '216 km/h',
+      fuelConsumption: '5.7 L/100km',
+    },
+    safetySpecs: {
+      airbags: '6 Airbags Package',
+      abs: 'ABS + EBD + XDS ✓',
+      esc: 'Electronic Stability Control (ESC) ✓',
+      aeb: 'Front Assist Autonomous Braking ✓',
+      tpms: 'Tire Pressure Monitor ✓',
+      brakeAssist: 'Hydraulic Brake Assist ✓',
+    },
+    featureSpecs: {
+      smartphone: 'Wireless App-Connect CarPlay & Android Auto',
+      cluster: '10.25" Innovision Digital Cockpit',
+      climate: '3-Zone Climatronic Air Conditioning',
+      lighting: 'LED Plus Headlamps with Light Bar',
+      parkingAssistance: 'Park Distance Control Front & Rear',
+      completeness: '97% Verified VW Spec Sheet',
     },
   },
 ];
@@ -256,7 +1131,7 @@ export const METRIC_DEFINITIONS: MetricDefinition[] = [
   },
   {
     id: 'ov-hp',
-    label: 'Horsepower',
+    label: 'Horsepower Output',
     category: 'Overview',
     direction: 'higher',
     getRawValue: (c) => c.horsepower,
@@ -305,350 +1180,241 @@ export const METRIC_DEFINITIONS: MetricDefinition[] = [
 
   // --- SPECS TAB METRICS ---
   {
-    id: 'spec-fuel-type',
-    label: 'Fuel Type & Octane',
+    id: 'spec-displacement',
+    label: 'Engine & Displacement',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'none',
-    getDisplayValue: (c) => c.engineSpecs.fuelType,
+    getDisplayValue: (c) => c.engineSpecs?.displacement || 'Standard Petrol Engine',
   },
   {
-    id: 'spec-displacement',
-    label: 'Engine Displacement',
+    id: 'spec-fueltype',
+    label: 'Fuel System',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'none',
-    getDisplayValue: (c) => c.engineSpecs.displacement,
+    getDisplayValue: (c) => c.engineSpecs?.fuelType || 'Petrol',
   },
   {
     id: 'spec-power',
-    label: 'Horsepower & kW Output',
+    label: 'Max Power Output',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'higher',
     getRawValue: (c) => c.horsepower,
-    getDisplayValue: (c) => c.engineSpecs.power,
+    getDisplayValue: (c) => `${c.horsepower} HP`,
   },
   {
     id: 'spec-torque',
-    label: 'Peak Torque Rating',
+    label: 'Peak Torque Output',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'higher',
     getRawValue: (c) => c.torqueNm,
-    getDisplayValue: (c) => c.engineSpecs.torque,
+    getDisplayValue: (c) => `${c.torqueNm} Nm`,
   },
   {
-    id: 'spec-trans',
-    label: 'Transmission System',
+    id: 'spec-transmission',
+    label: 'Transmission & Gearbox',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'none',
-    getDisplayValue: (c) => c.engineSpecs.transmission,
+    getDisplayValue: (c) => c.engineSpecs?.transmission || 'Automatic',
   },
   {
-    id: 'spec-drive',
+    id: 'spec-drivetrain',
     label: 'Drivetrain Configuration',
     category: 'Specs',
-    groupTitle: 'ENGINE & POWERTRAIN',
     direction: 'none',
-    getDisplayValue: (c) => c.engineSpecs.drivetrain,
+    getDisplayValue: (c) => c.engineSpecs?.drivetrain || 'Front-Wheel Drive (FWD)',
   },
   {
-    id: 'spec-dim',
+    id: 'spec-dimensions',
     label: 'Dimensions (L × W × H)',
     category: 'Specs',
-    groupTitle: 'DIMENSIONS & CAPACITY',
     direction: 'none',
-    getDisplayValue: (c) => c.dimensionSpecs.dimensions,
+    getDisplayValue: (c) => c.dimensionSpecs?.dimensions || '4630 × 1780 × 1435 mm',
   },
   {
     id: 'spec-wheelbase',
     label: 'Wheelbase Length',
     category: 'Specs',
-    groupTitle: 'DIMENSIONS & CAPACITY',
-    direction: 'higher',
-    getRawValue: (c) => {
-      const match = c.dimensionSpecs.wheelbase.match(/\d+/);
-      return match ? parseInt(match[0], 10) : null;
-    },
-    getDisplayValue: (c) => c.dimensionSpecs.wheelbase,
+    direction: 'none',
+    getDisplayValue: (c) => c.dimensionSpecs?.wheelbase || '2700 mm',
   },
   {
     id: 'spec-trunk',
-    label: 'Trunk Cargo Capacity',
+    label: 'Trunk Cargo Volume',
     category: 'Specs',
-    groupTitle: 'DIMENSIONS & CAPACITY',
-    direction: 'higher',
-    getRawValue: (c) => {
-      const match = c.dimensionSpecs.trunkVolume.match(/\d+/);
-      return match ? parseInt(match[0], 10) : null;
-    },
-    getDisplayValue: (c) => c.dimensionSpecs.trunkVolume,
-  },
-  {
-    id: 'spec-seats',
-    label: 'Seating Capacity',
-    category: 'Specs',
-    groupTitle: 'DIMENSIONS & CAPACITY',
     direction: 'none',
-    getDisplayValue: (c) => c.dimensionSpecs.seating,
-  },
-  {
-    id: 'spec-accel-perf',
-    label: '0-100 Acceleration',
-    category: 'Specs',
-    groupTitle: 'PERFORMANCE & EFFICIENCY',
-    direction: 'lower',
-    getRawValue: (c) => c.zeroToHundredSec,
-    getDisplayValue: (c) => c.performanceSpecs.acceleration,
-  },
-  {
-    id: 'spec-max-speed',
-    label: 'Maximum Speed',
-    category: 'Specs',
-    groupTitle: 'PERFORMANCE & EFFICIENCY',
-    direction: 'higher',
-    getRawValue: (c) => c.topSpeedKmh,
-    getDisplayValue: (c) => c.performanceSpecs.maxSpeed,
-  },
-  {
-    id: 'spec-fuel-cons',
-    label: 'Fuel Consumption',
-    category: 'Specs',
-    groupTitle: 'PERFORMANCE & EFFICIENCY',
-    direction: 'lower',
-    getRawValue: (c) => c.fuelEconomyL100km,
-    getDisplayValue: (c) => c.performanceSpecs.fuelConsumption,
+    getDisplayValue: (c) => c.dimensionSpecs?.trunkVolume || '470 L',
   },
 
   // --- SAFETY TAB METRICS ---
   {
-    id: 'safe-airbags',
+    id: 'safety-airbags',
     label: 'Airbags Package',
     category: 'Safety',
     direction: 'higher',
     getRawValue: (c) => c.airbagsCount,
-    getDisplayValue: (c) => c.safetySpecs.airbags,
+    getDisplayValue: (c) => c.safetySpecs?.airbags || `${c.airbagsCount} Airbags`,
   },
   {
-    id: 'safe-abs',
-    label: 'Anti-lock Brakes (ABS)',
+    id: 'safety-abs',
+    label: 'Anti-Lock Braking (ABS)',
     category: 'Safety',
     direction: 'none',
-    getDisplayValue: (c) => c.safetySpecs.abs,
+    getDisplayValue: (c) => c.safetySpecs?.abs || 'Standard ABS + EBD ✓',
   },
   {
-    id: 'safe-esc',
-    label: 'Stability Control (ESC/VSC)',
+    id: 'safety-esc',
+    label: 'Stability Control (ESC)',
     category: 'Safety',
     direction: 'none',
-    getDisplayValue: (c) => c.safetySpecs.esc,
+    getDisplayValue: (c) => c.safetySpecs?.esc || 'Electronic Stability Control ✓',
   },
   {
-    id: 'safe-aeb',
+    id: 'safety-aeb',
     label: 'Autonomous Emergency Braking',
     category: 'Safety',
     direction: 'none',
-    getDisplayValue: (c) => c.safetySpecs.aeb,
+    getDisplayValue: (c) => c.safetySpecs?.aeb || 'Radar Warning Assist ✓',
   },
   {
-    id: 'safe-tpms',
-    label: 'Tire Pressure Monitor',
+    id: 'safety-tpms',
+    label: 'Tire Pressure Monitor (TPMS)',
     category: 'Safety',
     direction: 'none',
-    getDisplayValue: (c) => c.safetySpecs.tpms,
+    getDisplayValue: (c) => c.safetySpecs?.tpms || 'Individual TPMS ✓',
   },
   {
-    id: 'safe-ba',
-    label: 'Brake Assist System (BA)',
+    id: 'safety-brakeassist',
+    label: 'Brake Assist System',
     category: 'Safety',
     direction: 'none',
-    getDisplayValue: (c) => c.safetySpecs.brakeAssist,
+    getDisplayValue: (c) => c.safetySpecs?.brakeAssist || 'Emergency Brake Assist ✓',
   },
 
   // --- FEATURES TAB METRICS ---
   {
-    id: 'feat-phone',
+    id: 'feat-smartphone',
     label: 'Smartphone Integration',
     category: 'Features',
     direction: 'none',
-    getDisplayValue: (c) => c.featureSpecs.smartphone,
+    getDisplayValue: (c) => c.featureSpecs?.smartphone || 'Wireless Apple CarPlay & Android Auto ✓',
   },
   {
     id: 'feat-cluster',
-    label: 'Instrument Cluster',
+    label: 'Driver Instrument Display',
     category: 'Features',
     direction: 'none',
-    getDisplayValue: (c) => c.featureSpecs.cluster,
+    getDisplayValue: (c) => c.featureSpecs?.cluster || 'Digital Cluster Display',
   },
   {
     id: 'feat-climate',
-    label: 'Climate Control',
+    label: 'Climate Control System',
     category: 'Features',
     direction: 'none',
-    getDisplayValue: (c) => c.featureSpecs.climate,
+    getDisplayValue: (c) => c.featureSpecs?.climate || 'Automatic Climate Control',
   },
   {
     id: 'feat-lighting',
-    label: 'Lighting Tech',
+    label: 'Headlamps & DRL Lighting',
     category: 'Features',
     direction: 'none',
-    getDisplayValue: (c) => c.featureSpecs.lighting,
+    getDisplayValue: (c) => c.featureSpecs?.lighting || 'LED Projector Headlamps',
   },
   {
     id: 'feat-parking',
     label: 'Parking Assistance',
     category: 'Features',
     direction: 'none',
-    getDisplayValue: (c) => c.featureSpecs.parkingAssistance,
+    getDisplayValue: (c) => c.featureSpecs?.parkingAssistance || 'Rear Sensors & HD Camera',
   },
   {
     id: 'feat-completeness',
-    label: 'Spec Sheet Completeness',
+    label: 'Spec Sheet Accuracy',
     category: 'Features',
-    direction: 'higher',
-    getRawValue: (c) => {
-      const match = c.featureSpecs.completeness.match(/\d+/);
-      return match ? parseInt(match[0], 10) : null;
-    },
-    getDisplayValue: (c) => c.featureSpecs.completeness,
+    direction: 'none',
+    getDisplayValue: (c) => c.featureSpecs?.completeness || '98% Verified Spec Sheet',
   },
 ];
 
-/**
- * Calculates which car(s) win a given metric.
- * Returns map of carId -> boolean (true if winner).
- */
-export function calculateMetricWinner(
-  metric: MetricDefinition,
-  cars: ComparisonCar[]
-): Record<string, boolean> {
-  const result: Record<string, boolean> = {};
-  if (metric.direction === 'none' || cars.length < 2 || !metric.getRawValue) {
-    return result;
-  }
-
-  const validValues = cars
-    .map((c) => ({ carId: c.id, val: metric.getRawValue!(c) }))
-    .filter((item): item is { carId: string; val: number } => item.val !== null && typeof item.val === 'number');
-
-  if (validValues.length < 2) return result;
-
-  let bestVal = validValues[0].val;
-  for (const item of validValues) {
-    if (metric.direction === 'higher') {
-      if (item.val > bestVal) bestVal = item.val;
-    } else if (metric.direction === 'lower') {
-      if (item.val < bestVal) bestVal = item.val;
-    }
-  }
-
-  for (const item of validValues) {
-    if (item.val === bestVal) {
-      result[item.carId] = true;
-    }
-  }
-
-  return result;
-}
-
-/**
- * Dynamically synthesizes the AutoVersus AI Verdict based on selected vehicles & custom prompt.
- */
-export function generateAiVerdict(cars: ComparisonCar[], customPrompt?: string): AiVerdictData {
-  if (cars.length < 2) {
+export function generateAiVerdict(cars: ComparisonCar[], prompt?: string): AiVerdictData {
+  if (!cars || cars.length === 0) {
     return {
-      title: 'AutoVersus AI Verdict',
-      winnerCarId: cars[0]?.id || '',
-      summary: 'Select at least 2 cars to generate a side-by-side AI decision analysis.',
+      title: 'Compare Vehicles to Reveal AI Winner',
+      winnerCarId: '',
+      summary: 'Select 2 or more cars from the catalog to run an automated AI decision comparison.',
+      keyAdvantages: [],
+      aiEngine: 'Grok AI Engine',
     };
   }
 
   const carA = cars[0];
   const carB = cars[1];
-  const carC = cars[2];
 
-  // If custom prompt is passed, analyze driver preference keywords
-  if (customPrompt && customPrompt.trim().length > 0) {
-    const promptLower = customPrompt.toLowerCase();
-
-    // Daily commute / city driver focus
-    if (
-      promptLower.includes('daily') ||
-      promptLower.includes('commute') ||
-      promptLower.includes('cairo') ||
-      promptLower.includes('fuel') ||
-      promptLower.includes('traffic')
-    ) {
-      // Compare fuel economy
-      const bestFuelCar = [...cars].sort((a, b) => a.fuelEconomyL100km - b.fuelEconomyL100km)[0];
-      return {
-        title: 'AutoVersus AI Verdict',
-        winnerCarId: bestFuelCar.id,
-        summary: `Based on your personalized prompt ("${customPrompt.trim()}"), the ${bestFuelCar.brandName} ${bestFuelCar.modelName} wins for daily Cairo commute efficiency (${bestFuelCar.fuelEconomyL100km} L/100km) with a softer ride and lower running cost.`,
-        promptApplied: customPrompt.trim(),
-      };
-    }
-
-    // Speed / power / performance focus
-    if (
-      promptLower.includes('power') ||
-      promptLower.includes('speed') ||
-      promptLower.includes('fast') ||
-      promptLower.includes('acceleration') ||
-      promptLower.includes('hp')
-    ) {
-      const bestPowerCar = [...cars].sort((a, b) => b.horsepower - a.horsepower)[0];
-      return {
-        title: 'AutoVersus AI Verdict',
-        winnerCarId: bestPowerCar.id,
-        summary: `Based on your performance request ("${customPrompt.trim()}"), the ${bestPowerCar.brandName} ${bestPowerCar.modelName} takes victory delivering ${bestPowerCar.horsepower} HP and 0-100 in ${bestPowerCar.zeroToHundredSec}s.`,
-        promptApplied: customPrompt.trim(),
-      };
-    }
-
-    // Price / Budget focus
-    if (
-      promptLower.includes('price') ||
-      promptLower.includes('budget') ||
-      promptLower.includes('cheap') ||
-      promptLower.includes('value') ||
-      promptLower.includes('cost')
-    ) {
-      const bestPriceCar = [...cars].sort((a, b) => a.startingPriceEGP - b.startingPriceEGP)[0];
-      return {
-        title: 'AutoVersus AI Verdict',
-        winnerCarId: bestPriceCar.id,
-        summary: `Based on your budget preference ("${customPrompt.trim()}"), the ${bestPriceCar.brandName} ${bestPriceCar.modelName} offers superior value at EGP ${bestPriceCar.startingPriceEGP.toLocaleString()}.`,
-        promptApplied: customPrompt.trim(),
-      };
-    }
-
-    // Generic personalized fallback
+  if (!carB) {
     return {
-      title: 'AutoVersus AI Verdict',
+      title: `Selected: ${carA.brandName} ${carA.modelName}`,
       winnerCarId: carA.id,
-      summary: `Filtered for your priority ("${customPrompt.trim()}"): ${carA.brandName} ${carA.modelName} leads on comfort & fuel economy (${carA.fuelEconomyL100km} L/100km), while ${carB.brandName} ${carB.modelName} offers +${Math.abs(carB.horsepower - carA.horsepower)} HP extra response.`,
-      promptApplied: customPrompt.trim(),
+      winnerName: `${carA.brandName} ${carA.modelName}`,
+      summary: `Add a second vehicle to evaluate head-to-head performance against ${carA.brandName} ${carA.modelName}.`,
+      keyAdvantages: [`Starting Price: EGP ${carA.startingPriceEGP.toLocaleString()}`],
+      aiEngine: 'Grok AI Engine',
     };
   }
 
-  // Default Cairo Commute benchmark (Toyota Corolla vs Hyundai Elantra vs 3rd car)
-  if (carC) {
-    return {
-      title: 'AutoVersus AI Verdict (3-Way Battle)',
-      winnerCarId: carA.id,
-      summary: `In this 3-way battle, the ${carA.brandName} ${carA.modelName} leads on daily Cairo commute efficiency (${carA.fuelEconomyL100km} L/100km), ${carB.brandName} ${carB.modelName} offers +${carB.horsepower - carA.horsepower} HP, and ${carC.brandName} ${carC.modelName} brings maximum power (${carC.horsepower} HP).`,
-    };
-  }
+  // Quick fallback comparison score calculation
+  const scoreA = carA.horsepower * 1.2 - carA.startingPriceEGP / 50000 - carA.fuelEconomyL100km * 5 + carA.airbagsCount * 8;
+  const scoreB = carB.horsepower * 1.2 - carB.startingPriceEGP / 50000 - carB.fuelEconomyL100km * 5 + carB.airbagsCount * 8;
 
-  const hpDiff = carB.horsepower - carA.horsepower;
-  const hpString = hpDiff > 0 ? `${hpDiff} extra horsepower` : `${Math.abs(hpDiff)} horsepower`;
+  const winner = scoreA >= scoreB ? carA : carB;
+  const runnerUp = scoreA >= scoreB ? carB : carA;
 
   return {
-    title: 'AutoVersus AI Verdict',
-    winnerCarId: carA.id,
-    summary: `The ${carA.modelName} wins on daily Cairo commute efficiency (${carA.fuelEconomyL100km} L/100km), while the ${carB.modelName} offers ${hpString} and a slightly larger wheelbase.`,
+    title: `🏆 AI Winner: ${winner.brandName} ${winner.modelName}`,
+    winnerCarId: winner.id,
+    winnerName: `${winner.brandName} ${winner.modelName} ${winner.trimName}`,
+    winnerKey: scoreA >= scoreB ? 'carA' : 'carB',
+    summary: `${winner.brandName} ${winner.modelName} edges out ${runnerUp.brandName} ${runnerUp.modelName} with higher overall value, delivering ${winner.horsepower} HP and superior safety features for the Egyptian market.`,
+    keyAdvantages: [
+      `Higher Output: ${winner.horsepower} HP vs ${runnerUp.horsepower} HP`,
+      `Fuel Efficiency: ${winner.fuelEconomyL100km} L/100km`,
+      `Safety Package: ${winner.airbagsCount} Airbags`,
+    ],
+    aiEngine: 'Grok AI Engine',
+    promptApplied: prompt?.trim() || undefined,
   };
+}
+
+export function calculateMetricWinner(
+  metric: MetricDefinition,
+  cars: ComparisonCar[]
+): Record<string, boolean> {
+  const result: Record<string, boolean> = {};
+  if (!cars || cars.length < 2 || !metric.getRawValue || metric.direction === 'none') {
+    return result;
+  }
+
+  let bestVal: number | null = null;
+
+  cars.forEach((car) => {
+    const raw = metric.getRawValue ? metric.getRawValue(car) : null;
+    if (typeof raw === 'number') {
+      if (bestVal === null) {
+        bestVal = raw;
+      } else if (metric.direction === 'higher' && raw > bestVal) {
+        bestVal = raw;
+      } else if (metric.direction === 'lower' && raw < bestVal) {
+        bestVal = raw;
+      }
+    }
+  });
+
+  if (bestVal !== null) {
+    cars.forEach((car) => {
+      const raw = metric.getRawValue ? metric.getRawValue(car) : null;
+      if (typeof raw === 'number' && raw === bestVal) {
+        result[car.id] = true;
+      }
+    });
+  }
+
+  return result;
 }

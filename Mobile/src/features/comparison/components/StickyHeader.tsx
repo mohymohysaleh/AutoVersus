@@ -27,19 +27,19 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
       <View style={styles.columnsRow}>
         {/* Render filled car slots */}
         {cars.map((car, index) => {
-          const isWinner = winnerCarId && car.id === winnerCarId;
+          const isWinner = Boolean(winnerCarId) && car.id === winnerCarId;
           return (
             <View
-              key={car.id}
-              style={[styles.carSlot, isWinner && styles.winnerCarSlot]}
+              key={car.id || index}
+              style={[styles.carSlot, isWinner ? styles.winnerCarSlot : null]}
             >
               {/* Winner Crown Badge */}
-              {isWinner && (
+              {isWinner ? (
                 <View style={styles.winnerCrownTag}>
                   <Ionicons name="trophy" size={10} color="#D97706" />
                   <Text style={styles.winnerCrownText}>WINNER</Text>
                 </View>
-              )}
+              ) : null}
 
               {/* Remove car icon if 2+ cars */}
               <TouchableOpacity
@@ -79,7 +79,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
         })}
 
         {/* Empty Slot 1 (if 0 cars) */}
-        {showEmptySlot1 && (
+        {showEmptySlot1 ? (
           <TouchableOpacity
             style={styles.addCarSlot}
             onPress={onAddCarPress}
@@ -91,10 +91,10 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
             <Text style={styles.addSlotText}>Select 1st Car</Text>
             <Text style={styles.addSlotSub}>Tap to pick vehicle</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
 
         {/* Empty Slot 2 (if <= 1 cars) */}
-        {showEmptySlot2 && (
+        {showEmptySlot2 ? (
           <TouchableOpacity
             style={styles.addCarSlot}
             onPress={onAddCarPress}
@@ -106,10 +106,10 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
             <Text style={styles.addSlotText}>Select 2nd Car</Text>
             <Text style={styles.addSlotSub}>Tap to pick vehicle</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
 
         {/* Empty Slot 3 (if exactly 2 cars) */}
-        {showEmptySlot3 && (
+        {showEmptySlot3 ? (
           <TouchableOpacity
             style={styles.addCarSlot}
             onPress={onAddCarPress}
@@ -121,7 +121,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
             <Text style={styles.addSlotText}>Add 3rd Car</Text>
             <Text style={styles.addSlotSub}>Compare 3 cars</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );

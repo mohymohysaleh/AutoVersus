@@ -37,7 +37,7 @@ import { CarPickerModal } from '../components/CarPickerModal';
 import { AiChatModal } from '../components/AiChatModal';
 
 export const ComparisonScreen: React.FC = () => {
-  const params = useLocalSearchParams<{ carSlug?: string }>();
+  const params = useLocalSearchParams<{ carSlug?: string; openChat?: string }>();
 
   // Active selected cars (starts empty until user selects cars)
   const [selectedCars, setSelectedCars] = useState<ComparisonCar[]>([]);
@@ -61,19 +61,54 @@ export const ComparisonScreen: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
   const [hasRunComparison, setHasRunComparison] = useState<boolean>(false);
 
-  // Load car from route params if navigated from CarDetailsScreen
+  // Auto-open chatbot modal if navigated with openChat=true
+  useEffect(() => {
+    if (params.openChat === 'true') {
+      setIsChatModalVisible(true);
+    }
+  }, [params.openChat]);
+
+  // Load car from route params if navigated with carSlug (e.g. from QuizScreen or CarDetailsScreen)
   useEffect(() => {
     if (params.carSlug) {
-      catalogApi.fetchVariantDetails(params.carSlug).then((variant) => {
-        if (variant) {
-          const compCar = mapVariantToComparisonCar(variant);
-          setSelectedCars((prev) => {
-            if (prev.length === 0) return [compCar];
-            return [compCar, ...prev.slice(1)];
-          });
-          setHasRunComparison(false);
-        }
-      });
+      const slug = params.carSlug as string;
+
+      // 1. Look up car in COMPARISON_CARS_DATABASE first (instant 0ms placement!)
+      const mockCar = COMPARISON_CARS_DATABASE.find(
+        (c) =>
+          c.slug === slug ||
+          c.id === slug ||
+          `${c.brandName}-${c.modelName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').includes(slug.toLowerCase())
+      );
+
+      if (mockCar) {
+        setSelectedCars((prev) => {
+          // If car is already in comparison box, keep state
+          if (prev.some((c) => c.id === mockCar.id || c.slug === mockCar.slug)) {
+            return prev;
+          }
+          // If comparison box is empty, place as Car 1
+          if (prev.length === 0) return [mockCar];
+          // If 1 car exists, place as Car 2 (creates 2-car comparison matrix directly!)
+          if (prev.length === 1) return [prev[0], mockCar];
+          // If 2+ cars exist, replace Car 2 with newly selected car
+          return [prev[0], mockCar];
+        });
+        setHasRunComparison(false);
+      } else {
+        // Fallback to catalogApi.fetchVariantDetails
+        catalogApi.fetchVariantDetails(slug).then((variant) => {
+          if (variant) {
+            const compCar = mapVariantToComparisonCar(variant);
+            setSelectedCars((prev) => {
+              if (prev.some((c) => c.id === compCar.id || c.slug === compCar.slug)) return prev;
+              if (prev.length === 0) return [compCar];
+              return [prev[0], compCar];
+            });
+            setHasRunComparison(false);
+          }
+        });
+      }
     }
   }, [params.carSlug]);
 
@@ -288,7 +323,7 @@ export const ComparisonScreen: React.FC = () => {
           />
         )}
 
-        {/* Comparison Scope Filter Selector */}
+        {/* Comparison Scope Filter Tabs (Full, Overview, Specs, Safety, Features) */}
         <ComparisonScopeSelector
           activeScope={activeScope}
           onSelectScope={setActiveScope}

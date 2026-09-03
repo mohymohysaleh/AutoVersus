@@ -5,10 +5,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
-  TouchableWithoutFeedback,
   KeyboardAvoidingView,
-  Keyboard,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,15 +54,11 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'android' ? 'height' : undefined}
         style={styles.keyboardView}
       >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            style={styles.modalCard}
-          >
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
             {/* Header */}
             <View style={styles.headerRow}>
               <View style={styles.headerTitleGroup}>
@@ -127,8 +122,8 @@ export const CustomPromptModal: React.FC<CustomPromptModalProps> = ({
                 <Text style={styles.applyBtnText}>Apply AI Personalization</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </KeyboardAvoidingView>
     </Modal>
   );
