@@ -3,7 +3,6 @@ import { StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from 'react
 import { router } from 'expo-router';
 import { Header } from '../../src/features/home/components/Header';
 import { SearchBar } from '../../src/features/home/components/SearchBar';
-import { CategoryChips } from '../../src/features/home/components/CategoryChips';
 import { FindMyCarBanner } from '../../src/features/home/components/FindMyCarBanner';
 import { TrendingCarsList, TrendingCarItem } from '../../src/features/home/components/TrendingCarsList';
 import { LatestNewsList, NewsArticleCardItem } from '../../src/features/home/components/LatestNewsList';
@@ -46,16 +45,11 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Search & Filter Bar */}
+        {/* Search Bar */}
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onFilterPress={() => router.push('/(tabs)/search')}
-        />
-
-        {/* Category Horizontal Chips */}
-        <CategoryChips
-          onSelectCategory={(cat) => router.push('/(tabs)/search')}
+          showFilter={false}
         />
 
         {/* AI "Find My Car" Banner */}

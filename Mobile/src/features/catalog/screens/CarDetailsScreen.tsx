@@ -10,6 +10,7 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -18,6 +19,7 @@ import { resolveCarImage } from '../../../shared/utils/car-image.utils';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { COMPARISON_CARS_DATABASE } from '../../comparison/data/comparison-mock.data';
 import { ComparisonCar } from '../../comparison/types/comparison.types';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 function convertComparisonCarToVariant(car: ComparisonCar): VariantDetailDto {
   return {
@@ -71,10 +73,29 @@ interface CarDetailsScreenProps {
 
 export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'Overview' | 'Specs' | 'Safety' | 'Features'>('Overview');
   const [variant, setVariant] = useState<VariantDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+
+  const handleSaveToGarage = () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save cars to your garage.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
+    setIsSaved(!isSaved);
+  };
 
   const tabsMap: Record<string, string> = {
     Overview: t('details.overview'),
@@ -225,7 +246,7 @@ export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
 
               <TouchableOpacity
                 style={[styles.solidBtn, isSaved && styles.solidBtnSaved]}
-                onPress={() => setIsSaved(!isSaved)}
+                onPress={handleSaveToGarage}
                 activeOpacity={0.8}
               >
                 <Ionicons

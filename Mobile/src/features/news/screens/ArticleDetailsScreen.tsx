@@ -9,6 +9,7 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -19,6 +20,7 @@ import {
   getLocalizedArticle,
 } from '../data/shift-news.data';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 interface ArticleDetailsScreenProps {
   slug?: string;
@@ -26,7 +28,27 @@ interface ArticleDetailsScreenProps {
 
 export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug }) => {
   const { t, language } = useLanguage();
+  const { isAuthenticated } = useAuthStore();
   const [fontSizeMultiplier, setFontSizeMultiplier] = useState(1);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSaveArticle = () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save news articles.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
+    setIsSaved(!isSaved);
+  };
 
   // Find article by slug or fallback to featured Shift-EG article
   const rawArticle: ShiftNewsArticle =
@@ -72,6 +94,10 @@ export const ArticleDetailsScreen: React.FC<ArticleDetailsScreenProps> = ({ slug
           <View style={styles.rightHeaderActions}>
             <TouchableOpacity style={styles.readerPillButton} onPress={toggleFontSize} activeOpacity={0.8}>
               <Text style={styles.readerPillText}>T A+</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconCircleButton} onPress={handleSaveArticle} activeOpacity={0.8}>
+              <Ionicons name={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#C92A2A' : '#111827'} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.iconCircleButton} activeOpacity={0.8}>

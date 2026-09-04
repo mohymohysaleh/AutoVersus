@@ -197,13 +197,15 @@ export const AuthScreen: React.FC = () => {
 
       {/* Top Bar with Logo & Close Button */}
       <View nativeID="auth-top-bar" testID="auth-top-bar" style={styles.topBar}>
-        <Image
-          nativeID="auth-logo-image"
-          testID="auth-logo-image"
-          source={require('../../../../assets/images/avLogo-removebg-preview.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
+        <View style={styles.logoWrapper}>
+          <Image
+            nativeID="auth-logo-image"
+            testID="auth-logo-image"
+            source={require('../../../../assets/images/avLogo-removebg-preview.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
         <TouchableOpacity
           testID="auth-close-button"
           accessibilityLabel="Close Authentication Screen"
@@ -514,11 +516,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  logoWrapper: {
+    width: 180,
+    height: 55,
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   logoImage: {
-    width: 140,
-    height: 40,
+    width: 270,
+    height: 170,
+    marginLeft: -45,
+    marginTop: -30,
+    marginBottom: -25,
   },
   closeButton: {
     width: 36,

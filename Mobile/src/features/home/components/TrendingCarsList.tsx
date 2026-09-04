@@ -6,10 +6,13 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 export interface TrendingCarItem {
   id: string;
@@ -69,9 +72,24 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
   onCarPress,
 }) => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuthStore();
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
   const toggleBookmark = (id: string) => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save cars to your garage.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
     setBookmarkedIds((prev) => ({
       ...prev,
       [id]: !prev[id],

@@ -8,12 +8,14 @@ interface SearchBarProps {
   value?: string;
   onChangeText?: (text: string) => void;
   onFilterPress?: () => void;
+  showFilter?: boolean;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   onFilterPress,
+  showFilter = true,
 }) => {
   const { t } = useLanguage();
 
@@ -35,15 +37,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </View>
 
       {/* Filter Button Icon */}
-      <TouchableOpacity
-        testID="home-search-filter-button"
-        accessibilityLabel="Open Vehicle Filters"
-        style={styles.filterButton}
-        onPress={onFilterPress}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="options-outline" size={20} color="#FFFFFF" />
-      </TouchableOpacity>
+      {showFilter && onFilterPress && (
+        <TouchableOpacity
+          testID="home-search-filter-button"
+          accessibilityLabel="Open Vehicle Filters"
+          style={styles.filterButton}
+          onPress={onFilterPress}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="options-outline" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

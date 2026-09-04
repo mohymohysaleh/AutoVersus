@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { CarItem } from '../types/catalog.types';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 interface CarGridCardProps {
   car: CarItem;
@@ -11,6 +13,25 @@ interface CarGridCardProps {
 export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [imgSrc, setImgSrc] = useState(car.imageUrl);
+  const { isAuthenticated } = useAuthStore();
+
+  const handleFavoritePress = () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save cars to your garage.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
+    setIsFavorite(!isFavorite);
+  };
 
   return (
     <TouchableOpacity
@@ -36,7 +57,7 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
           testID={`catalog-favorite-button-${car.id}`}
           accessibilityLabel={`Favorite ${car.model}`}
           style={styles.favoriteButton}
-          onPress={() => setIsFavorite(!isFavorite)}
+          onPress={handleFavoritePress}
           activeOpacity={0.8}
         >
           <Ionicons

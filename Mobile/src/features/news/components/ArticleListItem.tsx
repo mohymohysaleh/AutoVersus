@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { NewsArticleItem } from '../types/news.types';
 import { ShiftNewsArticle } from '../data/shift-news.data';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 interface ArticleListItemProps {
   article: NewsArticleItem | ShiftNewsArticle;
@@ -12,6 +14,25 @@ interface ArticleListItemProps {
 export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPress }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [imgSrc, setImgSrc] = useState(article.coverImage);
+  const { isAuthenticated } = useAuthStore();
+
+  const handleBookmarkPress = () => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save news articles.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
+    setIsBookmarked(!isBookmarked);
+  };
 
   return (
     <TouchableOpacity
@@ -54,7 +75,7 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPre
 
           <TouchableOpacity
             style={styles.bookmarkButton}
-            onPress={() => setIsBookmarked(!isBookmarked)}
+            onPress={handleBookmarkPress}
             activeOpacity={0.7}
           >
             <Ionicons

@@ -6,8 +6,10 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import {
   SHIFT_FEATURED_ARTICLE,
   SHIFT_ARTICLES_LIST,
@@ -15,6 +17,7 @@ import {
   getLocalizedArticle,
 } from '../../news/data/shift-news.data';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuthStore } from '../../identity/store/auth.store';
 
 export interface NewsArticleCardItem {
   id: string;
@@ -41,9 +44,24 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
   onArticlePress,
 }) => {
   const { t, language } = useLanguage();
+  const { isAuthenticated } = useAuthStore();
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
   const toggleBookmark = (id: string) => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        'Sign In Required',
+        'You need to sign in or create an account to save news articles.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign In',
+            onPress: () => router.push('/auth'),
+          },
+        ]
+      );
+      return;
+    }
     setBookmarkedIds((prev) => ({
       ...prev,
       [id]: !prev[id],
