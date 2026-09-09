@@ -20,6 +20,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { COMPARISON_CARS_DATABASE } from '../../comparison/data/comparison-mock.data';
 import { ComparisonCar } from '../../comparison/types/comparison.types';
 import { useAuthStore } from '../../identity/store/auth.store';
+import { useSavedStore } from '../../profile/store/saved.store';
 
 function convertComparisonCarToVariant(car: ComparisonCar): VariantDetailDto {
   return {
@@ -74,27 +75,34 @@ interface CarDetailsScreenProps {
 export const CarDetailsScreen: React.FC<CarDetailsScreenProps> = ({ slug }) => {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuthStore();
+  const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
+
   const [activeTab, setActiveTab] = useState<'Overview' | 'Specs' | 'Safety' | 'Features'>('Overview');
   const [variant, setVariant] = useState<VariantDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
+
+  const isSaved = variant ? isVehicleSaved(variant.id) || isVehicleSaved(variant.slug) : false;
 
   const handleSaveToGarage = () => {
     if (!isAuthenticated) {
-      Alert.alert(
-        'Sign In Required',
-        'You need to sign in or create an account to save cars to your garage.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign In',
-            onPress: () => router.push('/auth'),
-          },
-        ]
-      );
+      router.push('/(tabs)/profile');
       return;
     }
-    setIsSaved(!isSaved);
+    if (variant) {
+      const carImage = resolveCarImage(
+        variant.brandName,
+        variant.modelName,
+        variant.trimName,
+        variant.engine?.fuelType
+      );
+      toggleSavedVehicle({
+        id: variant.id,
+        name: `${variant.brandName} ${variant.modelName}`,
+        price: variant.startingPriceEGP ? `From EGP ${variant.startingPriceEGP.toLocaleString()}` : 'EGP 1,450,000',
+        imageUrl: carImage,
+        slug: variant.slug,
+      });
+    }
   };
 
   const tabsMap: Record<string, string> = {

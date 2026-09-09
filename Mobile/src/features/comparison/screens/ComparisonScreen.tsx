@@ -9,6 +9,7 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -27,6 +28,8 @@ import {
 import { fetchGrokComparisonVerdict } from '../services/comparison-api.service';
 import { catalogApi } from '../../catalog/api/catalog.api';
 import { mapVariantToComparisonCar } from '../../../shared/utils/comparison-mapper';
+import { useAuthStore } from '../../identity/store/auth.store';
+import { useSavedStore } from '../../profile/store/saved.store';
 
 import { StickyHeader } from '../components/StickyHeader';
 import { AiDecisionBanner } from '../components/AiDecisionBanner';
@@ -37,7 +40,9 @@ import { CarPickerModal } from '../components/CarPickerModal';
 import { AiChatModal } from '../components/AiChatModal';
 
 export const ComparisonScreen: React.FC = () => {
-  const params = useLocalSearchParams<{ carSlug?: string; openChat?: string }>();
+  const params = useLocalSearchParams<{ carSlug?: string; carSlugs?: string; openChat?: string }>();
+  const { isAuthenticated } = useAuthStore();
+  const { isComparisonSaved, toggleSavedComparison } = useSavedStore();
 
   // Active selected cars (starts empty until user selects cars)
   const [selectedCars, setSelectedCars] = useState<ComparisonCar[]>([]);
@@ -61,6 +66,11 @@ export const ComparisonScreen: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
   const [hasRunComparison, setHasRunComparison] = useState<boolean>(false);
 
+  const comparisonId = selectedCars.length >= 2
+    ? `comp-${selectedCars.map((c) => c.slug).sort().join('-')}`
+    : '';
+  const isAlreadySaved = isComparisonSaved(comparisonId);
+
   // Auto-open chatbot modal if navigated with openChat=true
   useEffect(() => {
     if (params.openChat === 'true') {
@@ -68,9 +78,29 @@ export const ComparisonScreen: React.FC = () => {
     }
   }, [params.openChat]);
 
-  // Load car from route params if navigated with carSlug (e.g. from QuizScreen or CarDetailsScreen)
+  // Load car(s) from route params (carSlug or comma-separated carSlugs)
   useEffect(() => {
-    if (params.carSlug) {
+    if (params.carSlugs) {
+      const slugs = (params.carSlugs as string).split(',').filter(Boolean);
+      const loadedCars: ComparisonCar[] = [];
+
+      slugs.forEach((slug) => {
+        const mockCar = COMPARISON_CARS_DATABASE.find(
+          (c) =>
+            c.slug === slug ||
+            c.id === slug ||
+            `${c.brandName}-${c.modelName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').includes(slug.toLowerCase())
+        );
+        if (mockCar) {
+          loadedCars.push(mockCar);
+        }
+      });
+
+      if (loadedCars.length > 0) {
+        setSelectedCars(loadedCars);
+        setHasRunComparison(false);
+      }
+    } else if (params.carSlug) {
       const slug = params.carSlug as string;
 
       // 1. Look up car in COMPARISON_CARS_DATABASE first (instant 0ms placement!)
@@ -110,9 +140,19 @@ export const ComparisonScreen: React.FC = () => {
         });
       }
     }
-  }, [params.carSlug]);
+  }, [params.carSlug, params.carSlugs]);
+
+  const requireAuthOrNavigateToProfile = (): boolean => {
+    if (!isAuthenticated) {
+      router.push('/(tabs)/profile');
+      return false;
+    }
+    return true;
+  };
 
   const handleRunComparison = async (overridePrompt?: string) => {
+    if (!requireAuthOrNavigateToProfile()) return;
+
     if (selectedCars.length < 2) {
       setIsCarPickerVisible(true);
       return;
@@ -130,6 +170,51 @@ export const ComparisonScreen: React.FC = () => {
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const handleSaveComparison = () => {
+    if (!requireAuthOrNavigateToProfile()) return;
+
+    if (selectedCars.length < 2) {
+      Alert.alert('Select Vehicles', 'Please select at least 2 vehicles to save a comparison.');
+      return;
+    }
+
+    const title = selectedCars.map((c) => `${c.brandName} ${c.modelName}`).join(' vs ');
+    const createdDate = `Created ${new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })}`;
+
+    const item = {
+      id: comparisonId,
+      title,
+      createdDate,
+      leftCarImage: selectedCars[0]?.imageUrl || '',
+      rightCarImage: selectedCars[1]?.imageUrl || selectedCars[0]?.imageUrl || '',
+      variantSlugs: selectedCars.map((c) => c.slug),
+    };
+
+    const saved = toggleSavedComparison(item);
+    if (saved) {
+      Alert.alert('Comparison Saved', 'This comparison has been saved to your Profile garage.');
+    }
+  };
+
+  const handleOpenChat = () => {
+    if (!requireAuthOrNavigateToProfile()) return;
+    setIsChatModalVisible(true);
+  };
+
+  const handleOpenPrompt = () => {
+    if (!requireAuthOrNavigateToProfile()) return;
+    setIsPromptModalVisible(true);
+  };
+
+  const handleRequestQuote = () => {
+    if (!requireAuthOrNavigateToProfile()) return;
+    Alert.alert('Dealer Quote Requested', 'A representative will contact you shortly with official pricing.');
   };
 
   const handleApplyPrompt = (newPrompt: string) => {
@@ -162,11 +247,13 @@ export const ComparisonScreen: React.FC = () => {
 
   // Handlers
   const handleAddCar = () => {
+    if (!requireAuthOrNavigateToProfile()) return;
     setActiveSlotToSwap(null);
     setIsCarPickerVisible(true);
   };
 
   const handleSwapCar = (index: number) => {
+    if (!requireAuthOrNavigateToProfile()) return;
     setActiveSlotToSwap(index);
     setIsCarPickerVisible(true);
   };
@@ -221,7 +308,7 @@ export const ComparisonScreen: React.FC = () => {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
             style={styles.chatHeaderBtn}
-            onPress={() => setIsChatModalVisible(true)}
+            onPress={handleOpenChat}
             activeOpacity={0.8}
           >
             <Ionicons name="chatbubbles" size={16} color="#FFFFFF" />
@@ -230,7 +317,7 @@ export const ComparisonScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.iconCircleBtn}
-            onPress={() => setIsPromptModalVisible(true)}
+            onPress={handleOpenPrompt}
             activeOpacity={0.8}
           >
             <Ionicons name="options-outline" size={18} color="#0F3040" />
@@ -256,7 +343,7 @@ export const ComparisonScreen: React.FC = () => {
         <View style={styles.promptBarWrapper}>
           <TouchableOpacity
             style={styles.promptBarCard}
-            onPress={() => setIsPromptModalVisible(true)}
+            onPress={handleOpenPrompt}
             activeOpacity={0.85}
           >
             <View style={styles.promptIconCircle}>
@@ -276,7 +363,7 @@ export const ComparisonScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* EXPLICIT COMPARE BUTTON ACTION */}
+        {/* EXPLICIT COMPARE & SAVE BUTTON ACTIONS */}
         <View style={styles.compareBtnWrapper}>
           <TouchableOpacity
             style={styles.mainCompareButton}
@@ -294,12 +381,29 @@ export const ComparisonScreen: React.FC = () => {
             </Text>
             <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
           </TouchableOpacity>
+
+          {selectedCars.length >= 2 && (
+            <TouchableOpacity
+              style={[styles.saveComparisonButton, isAlreadySaved && styles.saveComparisonButtonSaved]}
+              onPress={handleSaveComparison}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name={isAlreadySaved ? 'bookmark' : 'bookmark-outline'}
+                size={18}
+                color={isAlreadySaved ? '#C4342B' : '#0F3040'}
+              />
+              <Text style={[styles.saveComparisonButtonText, isAlreadySaved && styles.saveComparisonButtonTextSaved]}>
+                {isAlreadySaved ? 'Comparison Saved ✓' : 'Save Results'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Ask AI Chatbot Trigger Card */}
         <TouchableOpacity
           style={styles.askAiCardTrigger}
-          onPress={() => setIsChatModalVisible(true)}
+          onPress={handleOpenChat}
           activeOpacity={0.85}
         >
           <View style={styles.askAiIconCircle}>
@@ -319,7 +423,7 @@ export const ComparisonScreen: React.FC = () => {
           <AiDecisionBanner
             verdict={aiVerdict}
             isLoading={isAiLoading}
-            onPersonalizePress={() => setIsPromptModalVisible(true)}
+            onPersonalizePress={handleOpenPrompt}
           />
         )}
 
@@ -351,7 +455,7 @@ export const ComparisonScreen: React.FC = () => {
 
         {/* Dealership Quote CTA */}
         <View style={styles.bottomCtaWrapper}>
-          <TouchableOpacity style={styles.quoteButton} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.quoteButton} onPress={handleRequestQuote} activeOpacity={0.85}>
             <Text style={styles.quoteButtonText}>Request Official Dealer Quotes</Text>
             <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
           </TouchableOpacity>
@@ -498,6 +602,31 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  saveComparisonButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#0F3040',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    gap: 8,
+    marginTop: 10,
+  },
+  saveComparisonButtonSaved: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#C4342B',
+  },
+  saveComparisonButtonText: {
+    color: '#0F3040',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  saveComparisonButtonTextSaved: {
+    color: '#C4342B',
   },
   promptBarWrapper: {
     paddingHorizontal: 16,

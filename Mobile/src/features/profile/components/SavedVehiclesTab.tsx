@@ -1,60 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SavedVehicle } from '../types/profile.types';
 import { router } from 'expo-router';
-
-const MOCK_SAVED_VEHICLES: SavedVehicle[] = [
-  {
-    id: '1',
-    name: 'Range Rover Velar',
-    price: 'From EGP 4,200,000',
-    imageUrl: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
-    slug: 'range-rover-velar',
-  },
-  {
-    id: '2',
-    name: 'Hyundai IONIQ 6',
-    price: 'From EGP 2,450,000',
-    imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
-    slug: 'hyundai-ioniq-6-limited',
-  },
-  {
-    id: '3',
-    name: 'BMW M3 Competition',
-    price: 'From EGP 5,200,000',
-    imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
-    slug: 'bmw-m3-competition',
-  },
-  {
-    id: '4',
-    name: 'Porsche Taycan 4S',
-    price: 'From EGP 5,450,000',
-    imageUrl: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=800&q=80',
-    slug: 'porsche-taycan-4s',
-  },
-  {
-    id: '5',
-    name: 'City EV Touring',
-    price: 'From EGP 1,280,000',
-    imageUrl: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80',
-    slug: 'city-ev-touring',
-  },
-  {
-    id: '6',
-    name: 'Family Hybrid AWD',
-    price: 'From EGP 1,850,000',
-    imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80',
-    slug: 'family-hybrid-awd',
-  },
-];
+import { useSavedStore } from '../store/saved.store';
 
 export const SavedVehiclesTab: React.FC = () => {
-  const [vehicles, setVehicles] = useState<SavedVehicle[]>(MOCK_SAVED_VEHICLES);
-
-  const toggleRemove = (id: string) => {
-    setVehicles((prev) => prev.filter((v) => v.id !== id));
-  };
+  const savedVehicles = useSavedStore((state) => state.savedVehicles);
+  const removeSavedVehicle = useSavedStore((state) => state.removeSavedVehicle);
 
   const handleCardPress = (slug: string) => {
     router.push({
@@ -63,9 +15,30 @@ export const SavedVehiclesTab: React.FC = () => {
     });
   };
 
+  if (savedVehicles.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="heart-outline" size={32} color="#64748B" />
+        </View>
+        <Text style={styles.emptyTitle}>No Saved Vehicles</Text>
+        <Text style={styles.emptySubtitle}>
+          Tap the heart icon on any car card or spec sheet to save it to your personal garage.
+        </Text>
+        <TouchableOpacity
+          style={styles.browseButton}
+          onPress={() => router.push('/(tabs)/search')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.browseButtonText}>Browse Vehicle Catalog</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <FlatList
-      data={vehicles}
+      data={savedVehicles}
       keyExtractor={(item) => item.id}
       numColumns={2}
       showsVerticalScrollIndicator={false}
@@ -84,7 +57,7 @@ export const SavedVehiclesTab: React.FC = () => {
             {/* Filled Heart Button */}
             <TouchableOpacity
               style={styles.heartButton}
-              onPress={() => toggleRemove(item.id)}
+              onPress={() => removeSavedVehicle(item.id)}
               activeOpacity={0.8}
             >
               <Ionicons name="heart" size={18} color="#C92A2A" />
@@ -167,5 +140,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#C92A2A',
+  },
+
+  /* Empty state styles */
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 60,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F2942',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 24,
+  },
+  browseButton: {
+    backgroundColor: '#0F2942',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  browseButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

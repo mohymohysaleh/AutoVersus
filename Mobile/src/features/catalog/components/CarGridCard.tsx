@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { CarItem } from '../types/catalog.types';
 import { useAuthStore } from '../../identity/store/auth.store';
+import { useSavedStore } from '../../profile/store/saved.store';
 
 interface CarGridCardProps {
   car: CarItem;
@@ -11,26 +12,24 @@ interface CarGridCardProps {
 }
 
 export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
   const [imgSrc, setImgSrc] = useState(car.imageUrl);
   const { isAuthenticated } = useAuthStore();
+  const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
+
+  const isFavorite = isVehicleSaved(car.id) || isVehicleSaved(car.slug);
 
   const handleFavoritePress = () => {
     if (!isAuthenticated) {
-      Alert.alert(
-        'Sign In Required',
-        'You need to sign in or create an account to save cars to your garage.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign In',
-            onPress: () => router.push('/auth'),
-          },
-        ]
-      );
+      router.push('/(tabs)/profile');
       return;
     }
-    setIsFavorite(!isFavorite);
+    toggleSavedVehicle({
+      id: car.id,
+      name: `${car.brand} ${car.model}`,
+      price: car.price,
+      imageUrl: car.imageUrl,
+      slug: car.slug,
+    });
   };
 
   return (

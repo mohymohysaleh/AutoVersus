@@ -1,35 +1,45 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { SavedComparisonItem } from '../types/profile.types';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
-const MOCK_COMPARISONS: SavedComparisonItem[] = [
-  {
-    id: 'comp-1',
-    title: 'Range Rover Velar vs Hyundai IONIQ 6',
-    createdDate: 'Created Aug 22, 2026',
-    leftCarImage: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=800&q=80',
-    rightCarImage: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
-    variantSlugs: ['range-rover-velar', 'hyundai-ioniq-6-limited'],
-  },
-  {
-    id: 'comp-2',
-    title: 'BMW M3 vs Porsche Taycan 4S',
-    createdDate: 'Created Aug 14, 2026',
-    leftCarImage: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
-    rightCarImage: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=800&q=80',
-    variantSlugs: ['bmw-m3-competition', 'porsche-taycan-4s'],
-  },
-];
+import { SavedComparisonItem } from '../types/profile.types';
+import { useSavedStore } from '../store/saved.store';
 
 export const SavedComparisonsTab: React.FC = () => {
+  const savedComparisons = useSavedStore((state) => state.savedComparisons);
+  const removeSavedComparison = useSavedStore((state) => state.removeSavedComparison);
+
   const handleOpenComparison = (comparison: SavedComparisonItem) => {
-    router.push('/(tabs)/compare');
+    router.push({
+      pathname: '/(tabs)/compare',
+      params: { carSlugs: comparison.variantSlugs.join(',') },
+    });
   };
+
+  if (savedComparisons.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="swap-horizontal-outline" size={32} color="#64748B" />
+        </View>
+        <Text style={styles.emptyTitle}>No Saved Comparisons</Text>
+        <Text style={styles.emptySubtitle}>
+          Compare cars in the AutoVersus Spec Battle and tap 'Save Results' to store your custom vehicle matchups here.
+        </Text>
+        <TouchableOpacity
+          style={styles.compareButton}
+          onPress={() => router.push('/(tabs)/compare')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.compareButtonText}>Compare Cars Now</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <FlatList
-      data={MOCK_COMPARISONS}
+      data={savedComparisons}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
@@ -47,7 +57,19 @@ export const SavedComparisonsTab: React.FC = () => {
 
           {/* Details */}
           <View style={styles.cardBody}>
-            <Text style={styles.titleText}>{item.title}</Text>
+            <View style={styles.headerTitleRow}>
+              <Text style={styles.titleText} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => removeSavedComparison(item.id)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={18} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
             <Text style={styles.dateText}>{item.createdDate}</Text>
 
             {/* Open Comparison Button */}
@@ -105,11 +127,21 @@ const styles = StyleSheet.create({
   cardBody: {
     gap: 6,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   titleText: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '700',
     color: '#0F2942',
     lineHeight: 22,
+  },
+  deleteButton: {
+    padding: 4,
   },
   dateText: {
     fontSize: 13,
@@ -130,5 +162,49 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#0F2942',
+  },
+
+  /* Empty state styles */
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 60,
+  },
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F2942',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 24,
+  },
+  compareButton: {
+    backgroundColor: '#0F2942',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  compareButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

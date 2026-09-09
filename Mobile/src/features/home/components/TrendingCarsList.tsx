@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuthStore } from '../../identity/store/auth.store';
+import { useSavedStore } from '../../profile/store/saved.store';
 
 export interface TrendingCarItem {
   id: string;
@@ -73,27 +74,20 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
 }) => {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuthStore();
-  const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
+  const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
 
-  const toggleBookmark = (id: string) => {
+  const toggleBookmark = (car: TrendingCarItem) => {
     if (!isAuthenticated) {
-      Alert.alert(
-        'Sign In Required',
-        'You need to sign in or create an account to save cars to your garage.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign In',
-            onPress: () => router.push('/auth'),
-          },
-        ]
-      );
+      router.push('/(tabs)/profile');
       return;
     }
-    setBookmarkedIds((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    toggleSavedVehicle({
+      id: car.id,
+      name: `${car.name} ${car.subTitle}`,
+      price: car.price,
+      imageUrl: car.imageUrl,
+      slug: car.slug,
+    });
   };
 
   return (
@@ -123,7 +117,7 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
         contentContainerStyle={styles.scrollContent}
       >
         {TRENDING_CARS.map((car) => {
-          const isBookmarked = !!bookmarkedIds[car.id];
+          const isBookmarked = isVehicleSaved(car.id) || isVehicleSaved(car.slug);
           return (
             <TouchableOpacity
               key={car.id}
@@ -142,7 +136,7 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
                   testID={`home-bookmark-button-${car.id}`}
                   accessibilityLabel={`Bookmark ${car.name}`}
                   style={styles.bookmarkButton}
-                  onPress={() => toggleBookmark(car.id)}
+                  onPress={() => toggleBookmark(car)}
                   activeOpacity={0.8}
                 >
                   <Ionicons
