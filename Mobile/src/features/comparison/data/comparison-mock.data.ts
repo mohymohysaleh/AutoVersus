@@ -1355,29 +1355,99 @@ export function generateAiVerdict(cars: ComparisonCar[], prompt?: string): AiVer
       winnerCarId: carA.id,
       winnerName: `${carA.brandName} ${carA.modelName}`,
       summary: `Add a second vehicle to evaluate head-to-head performance against ${carA.brandName} ${carA.modelName}.`,
-      keyAdvantages: [`Starting Price: EGP ${carA.startingPriceEGP.toLocaleString()}`],
+      keyAdvantages: [
+        `Starting Price: EGP ${carA.startingPriceEGP.toLocaleString()}`,
+        `Engine Output: ${carA.horsepower} HP | ${carA.fuelEconomyL100km} L/100km`,
+      ],
       aiEngine: 'Grok AI Engine',
     };
   }
 
-  // Quick fallback comparison score calculation
-  const scoreA = carA.horsepower * 1.2 - carA.startingPriceEGP / 50000 - carA.fuelEconomyL100km * 5 + carA.airbagsCount * 8;
-  const scoreB = carB.horsepower * 1.2 - carB.startingPriceEGP / 50000 - carB.fuelEconomyL100km * 5 + carB.airbagsCount * 8;
+  const promptLower = (prompt || '').toLowerCase();
+
+  // Dynamic Prompt Weighting
+  let hpWeight = 1.2;
+  let priceWeight = -1 / 50000;
+  let fuelWeight = -5;
+  let safetyWeight = 8;
+  let accelWeight = -4;
+
+  if (promptLower.includes('speed') || promptLower.includes('power') || promptLower.includes('fast') || promptLower.includes('performance') || promptLower.includes('acceleration')) {
+    hpWeight = 3.5;
+    accelWeight = -12;
+  } else if (promptLower.includes('fuel') || promptLower.includes('economy') || promptLower.includes('efficient') || promptLower.includes('gas') || promptLower.includes('save')) {
+    fuelWeight = -18;
+  } else if (promptLower.includes('cheap') || promptLower.includes('price') || promptLower.includes('budget') || promptLower.includes('value') || promptLower.includes('cost')) {
+    priceWeight = -1 / 20000;
+  } else if (promptLower.includes('safe') || promptLower.includes('family') || promptLower.includes('airbag') || promptLower.includes('kids') || promptLower.includes('protection')) {
+    safetyWeight = 18;
+  }
+
+  const scoreA =
+    carA.horsepower * hpWeight +
+    carA.startingPriceEGP * priceWeight +
+    carA.fuelEconomyL100km * fuelWeight +
+    carA.airbagsCount * safetyWeight +
+    (carA.zeroToHundredSec || 10) * accelWeight;
+
+  const scoreB =
+    carB.horsepower * hpWeight +
+    carB.startingPriceEGP * priceWeight +
+    carB.fuelEconomyL100km * fuelWeight +
+    carB.airbagsCount * safetyWeight +
+    (carB.zeroToHundredSec || 10) * accelWeight;
 
   const winner = scoreA >= scoreB ? carA : carB;
   const runnerUp = scoreA >= scoreB ? carB : carA;
+  const winnerKey = scoreA >= scoreB ? 'carA' : 'carB';
+
+  // Calculate Exact Metric Deltas
+  const keyAdvantages: string[] = [];
+
+  // HP Delta
+  const hpDiff = winner.horsepower - runnerUp.horsepower;
+  if (hpDiff > 0) {
+    keyAdvantages.push(`+${hpDiff} HP higher engine output (${winner.horsepower} HP vs ${runnerUp.horsepower} HP)`);
+  }
+
+  // Acceleration Delta
+  if (winner.zeroToHundredSec && runnerUp.zeroToHundredSec && winner.zeroToHundredSec < runnerUp.zeroToHundredSec) {
+    const secDiff = (runnerUp.zeroToHundredSec - winner.zeroToHundredSec).toFixed(1);
+    keyAdvantages.push(`${secDiff}s faster 0-100 km/h acceleration (${winner.zeroToHundredSec}s vs ${runnerUp.zeroToHundredSec}s)`);
+  }
+
+  // Fuel Economy Delta
+  if (winner.fuelEconomyL100km < runnerUp.fuelEconomyL100km) {
+    const fuelSavedPercent = Math.round(((runnerUp.fuelEconomyL100km - winner.fuelEconomyL100km) / runnerUp.fuelEconomyL100km) * 100);
+    keyAdvantages.push(`${fuelSavedPercent}% lower fuel consumption (${winner.fuelEconomyL100km} L/100km vs ${runnerUp.fuelEconomyL100km} L/100km)`);
+  }
+
+  // Price Delta
+  if (winner.startingPriceEGP < runnerUp.startingPriceEGP) {
+    const priceSavings = runnerUp.startingPriceEGP - winner.startingPriceEGP;
+    keyAdvantages.push(`EGP ${priceSavings.toLocaleString()} lower starting MSRP (EGP ${winner.startingPriceEGP.toLocaleString()} vs EGP ${runnerUp.startingPriceEGP.toLocaleString()})`);
+  }
+
+  // Airbags Delta
+  if (winner.airbagsCount > runnerUp.airbagsCount) {
+    keyAdvantages.push(`+${winner.airbagsCount - runnerUp.airbagsCount} extra airbags package (${winner.airbagsCount} Airbags vs ${runnerUp.airbagsCount} Airbags)`);
+  }
+
+  // Fallback advantage if deltas were equal
+  if (keyAdvantages.length === 0) {
+    keyAdvantages.push(`${winner.brandName} ${winner.modelName} delivers ${winner.horsepower} HP with ${winner.fuelEconomyL100km} L/100km efficiency.`);
+    keyAdvantages.push(`Includes ${winner.airbagsCount} airbags and verified spec completeness.`);
+  }
+
+  const promptSnippet = prompt?.trim() ? ` for your custom request "${prompt.trim()}"` : '';
 
   return {
     title: `🏆 AI Winner: ${winner.brandName} ${winner.modelName}`,
     winnerCarId: winner.id,
     winnerName: `${winner.brandName} ${winner.modelName} ${winner.trimName}`,
-    winnerKey: scoreA >= scoreB ? 'carA' : 'carB',
-    summary: `${winner.brandName} ${winner.modelName} edges out ${runnerUp.brandName} ${runnerUp.modelName} with higher overall value, delivering ${winner.horsepower} HP and superior safety features for the Egyptian market.`,
-    keyAdvantages: [
-      `Higher Output: ${winner.horsepower} HP vs ${runnerUp.horsepower} HP`,
-      `Fuel Efficiency: ${winner.fuelEconomyL100km} L/100km`,
-      `Safety Package: ${winner.airbagsCount} Airbags`,
-    ],
+    winnerKey,
+    summary: `${winner.brandName} ${winner.modelName} takes the lead over ${runnerUp.brandName} ${runnerUp.modelName}${promptSnippet}. It delivers superior overall spec balance with ${winner.horsepower} HP, ${winner.fuelEconomyL100km} L/100km fuel economy, and ${winner.airbagsCount} airbags package.`,
+    keyAdvantages: keyAdvantages.slice(0, 3),
     aiEngine: 'Grok AI Engine',
     promptApplied: prompt?.trim() || undefined,
   };

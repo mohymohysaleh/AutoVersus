@@ -121,42 +121,19 @@ export function getInstantQuizMatches(answers: Record<number, string>): QuizResu
   const powertrainChoice = answers[4]; // 'petrol' | 'hybrid' | 'ev' | 'any_powertrain'
   const priorityChoice = answers[5]; // 'safety' | 'resale' | 'tech' | 'performance'
 
-  const shapeMap: Record<string, string> = {
-    suv: 'SUV & Crossover',
-    sedan: 'Sedan',
-    hatchback: 'Hatchback',
-    open: 'Vehicle',
-  };
-  const budgetMap: Record<string, string> = {
-    b1: 'Under EGP 1.5M',
-    b2: 'EGP 1.5M - 2.5M',
-    b3: 'EGP 2.5M - 4.0M',
-    b4: 'Above EGP 4.0M',
-  };
-  const priorityMap: Record<string, string> = {
-    safety: 'Safety',
-    resale: 'High Resale',
-    tech: 'Luxury Tech',
-    performance: 'High Power',
-  };
-
-  const priorityStr = priorityMap[priorityChoice] || 'Value';
-  const budgetStr = budgetMap[budgetChoice] || 'Budget';
-
-  // 1. ABSOLUTE STRICT BUDGET FILTERING (ZERO TOLERANCE FOR OVER-BUDGET CARS!)
+  // 1. ABSOLUTE STRICT BUDGET FILTERING (ZERO TOLERANCE FOR OVER-BUDGET CARS)
   const budgetFiltered = COMPARISON_CARS_DATABASE.filter((car) => {
     const price = car.startingPriceEGP;
-    if (budgetChoice === 'b1') return price <= 1500000; // STRICT HARD CAP <= 1,500,000 EGP
+    if (budgetChoice === 'b1') return price <= 1500000;
     if (budgetChoice === 'b2') return price >= 1400000 && price <= 2500000;
     if (budgetChoice === 'b3') return price >= 2400000 && price <= 4000000;
     if (budgetChoice === 'b4') return price >= 3800000;
     return true;
   });
 
-  // If budgetFiltered has cars, we ONLY consider budgetFiltered!
   const targetPool = budgetFiltered.length >= 1 ? budgetFiltered : COMPARISON_CARS_DATABASE;
 
-  // 2. ABSOLUTE STRICT BODY SHAPE FILTERING
+  // 2. BODY SHAPE FILTERING
   const shapeFiltered = targetPool.filter((car) => {
     const bodyUpper = (car.categoryTag || '').toUpperCase();
     const isSuv =
@@ -180,34 +157,72 @@ export function getInstantQuizMatches(answers: Record<number, string>): QuizResu
     return true;
   });
 
-  // If shapeFiltered has cars, use shapeFiltered. Otherwise stick to targetPool (still budget-compliant!).
   const candidates = shapeFiltered.length >= 1 ? shapeFiltered : targetPool;
 
-  // 3. Fine-Grained Priority & Specs Scoring
+  // 3. PRECISION 5-DIMENSIONAL SPEC ACCURACY SCORING
   const scored = candidates.map((car) => {
-    let score = 90;
+    let score = 75; // Baseline
 
-    // Powertrain boost
+    // A. Shape Match (Max +10)
+    const bodyUpper = (car.categoryTag || '').toUpperCase();
+    const isSuv = bodyUpper.includes('SUV') || bodyUpper.includes('CROSSOVER') || car.modelName.includes('Tiggo') || car.modelName.includes('Tucson') || car.modelName.includes('Sportage') || car.modelName.includes('Monjaro') || car.modelName.includes('Tiguan') || car.modelName.includes('X5') || car.modelName.includes('ZS');
+    const isHatchback = bodyUpper.includes('HATCHBACK') || car.modelName.includes('Leon') || car.modelName.includes('Golf');
+    const isSedan = !isSuv && !isHatchback;
+
+    if (shapeChoice === 'suv' && isSuv) score += 10;
+    if (shapeChoice === 'sedan' && isSedan) score += 10;
+    if (shapeChoice === 'hatchback' && isHatchback) score += 10;
+    if (shapeChoice === 'open') score += 7;
+
+    // B. Budget Efficiency Fit (Max +6)
+    const price = car.startingPriceEGP;
+    if (budgetChoice === 'b1' && price <= 1500000) score += 6;
+    if (budgetChoice === 'b2' && price >= 1400000 && price <= 2500000) score += 6;
+    if (budgetChoice === 'b3' && price >= 2400000 && price <= 4000000) score += 6;
+    if (budgetChoice === 'b4' && price >= 3800000) score += 6;
+
+    // C. Powertrain Alignment (Max +5)
     const fuelLower = (car.engineSpecs?.fuelType || '').toLowerCase();
     if (powertrainChoice === 'hybrid' && fuelLower.includes('hybrid')) score += 5;
-    if (powertrainChoice === 'ev' && (fuelLower.includes('electric') || car.fuelEconomyL100km === 0)) score += 5;
+    else if (powertrainChoice === 'ev' && (fuelLower.includes('electric') || car.fuelEconomyL100km === 0)) score += 5;
+    else if (powertrainChoice === 'petrol' && fuelLower.includes('petrol')) score += 4;
+    else if (powertrainChoice === 'any_powertrain') score += 3;
 
-    // Daily Drive
-    if (driveChoice === 'city' && car.fuelEconomyL100km <= 6.8) score += 3;
-    if (driveChoice === 'highway' && car.horsepower >= 160) score += 3;
-    if (driveChoice === 'family' && car.airbagsCount >= 6) score += 3;
+    // D. Daily Driving Scenario Fit (Max +4)
+    if (driveChoice === 'city' && car.fuelEconomyL100km > 0 && car.fuelEconomyL100km <= 6.8) score += 4;
+    if (driveChoice === 'highway' && car.horsepower >= 160) score += 4;
+    if (driveChoice === 'family' && car.airbagsCount >= 6) score += 4;
+    if (driveChoice === 'offroad' && isSuv) score += 4;
 
-    // Priority
-    if (priorityChoice === 'safety' && car.airbagsCount >= 6) score += 3;
-    if (priorityChoice === 'resale' && ['Toyota', 'Hyundai', 'Nissan', 'Kia'].includes(car.brandName)) score += 3;
-    if (priorityChoice === 'performance' && car.horsepower >= 180) score += 3;
+    // E. Priority Alignment (Max +4)
+    if (priorityChoice === 'safety' && car.airbagsCount >= 6) score += 4;
+    if (priorityChoice === 'resale' && ['Toyota', 'Hyundai', 'Nissan', 'Kia', 'Renault', 'Volkswagen', 'BMW', 'Mercedes-Benz'].includes(car.brandName)) score += 4;
+    if (priorityChoice === 'tech' && car.featureSpecs?.cluster && car.featureSpecs.cluster.includes('Digital')) score += 4;
+    if (priorityChoice === 'performance' && (car.horsepower >= 160 || car.zeroToHundredSec <= 8.5)) score += 4;
 
-    const matchPercentage = Math.min(99, Math.max(89, score));
+    const matchPercentage = Math.min(99, Math.max(88, score));
+
+    // 4. DYNAMIC CAR-SPECIFIC MATCH REASON GENERATION
+    let reasonText = '';
+    const formattedPrice = `EGP ${(car.startingPriceEGP / 1000000).toFixed(2)}M`;
+    const fuelStr = car.fuelEconomyL100km === 0 ? '0 L/100km (100% Electric)' : `${car.fuelEconomyL100km} L/100km fuel economy`;
+
+    if (priorityChoice === 'safety') {
+      reasonText = `${car.brandName} ${car.modelName} (${formattedPrice}) provides ${car.airbagsCount} airbags with advanced stability control and ${fuelStr}.`;
+    } else if (priorityChoice === 'resale') {
+      reasonText = `High resale demand in Egypt for ${car.brandName} ${car.modelName} at ${formattedPrice}, delivering ${car.horsepower} HP and proven market reliability.`;
+    } else if (priorityChoice === 'performance') {
+      reasonText = `${car.horsepower} HP output with ${car.zeroToHundredSec}s 0-100 acceleration, ${car.engineSpecs?.transmission || 'automatic transmission'}, priced at ${formattedPrice}.`;
+    } else if (priorityChoice === 'tech') {
+      reasonText = `${car.brandName} ${car.modelName} features ${car.featureSpecs?.cluster || 'Digital display'}, smartphone integration, and ${fuelStr} at ${formattedPrice}.`;
+    } else {
+      reasonText = `${car.brandName} ${car.modelName} ${car.trimName} (${formattedPrice}) delivers ${car.horsepower} HP, ${fuelStr}, and ${car.airbagsCount} airbags.`;
+    }
 
     return {
       car,
       matchPercentage,
-      matchReason: `100% compliant with your ${shapeMap[shapeChoice] || 'vehicle'} choice, ${budgetStr} budget, and ${priorityStr} priority.`,
+      matchReason: reasonText,
     };
   });
 
@@ -224,7 +239,7 @@ export async function fetchQuizAiRecommendations(
     suv: 'SUV & Crossover',
     sedan: 'Sedan',
     hatchback: 'Hatchback',
-    open: 'Any shape',
+    open: 'Any body style',
   };
 
   const budgetMap: Record<string, string> = {
@@ -255,23 +270,30 @@ export async function fetchQuizAiRecommendations(
     performance: 'Engine Power & Acceleration',
   };
 
-  const shapeStr = shapeMap[answers[1]] || 'Sedan/SUV';
-  const budgetStr = budgetMap[answers[2]] || 'EGP 1.5M - 2.5M';
-  const driveStr = driveMap[answers[3]] || 'City Commute';
+  const shapeStr = shapeMap[answers[1]] || 'Vehicle';
+  const budgetStr = budgetMap[answers[2]] || 'Target Budget';
+  const driveStr = driveMap[answers[3]] || 'Daily Driving';
   const powertrainStr = powertrainMap[answers[4]] || 'Petrol';
   const priorityStr = priorityMap[answers[5]] || 'High Resale & Reliability';
 
   const rankedCars = getInstantQuizMatches(answers);
 
   try {
-    const aiPrompt = `User completed a 5-step car buyer quiz with these exact choices:
-- Body Type Choice: ${shapeStr}
-- Budget Bracket: ${budgetStr}
+    const carsDetailText = rankedCars.map((r, i) =>
+      `${i + 1}. ${r.car.brandName} ${r.car.modelName} ${r.car.trimName} (EGP ${r.car.startingPriceEGP.toLocaleString()} | ${r.car.horsepower} HP | ${r.car.fuelEconomyL100km === 0 ? 'Electric' : r.car.fuelEconomyL100km + ' L/100km'} | ${r.car.airbagsCount} Airbags)`
+    ).join('\n');
+
+    const aiPrompt = `User completed the AutoVersus car buyer quiz in Egypt with these criteria:
+- Preferred Body Style: ${shapeStr}
+- Target Budget: ${budgetStr}
 - Driving Scenario: ${driveStr}
 - Powertrain: ${powertrainStr}
-- Top Priority: ${priorityStr}
+- Primary Priority: ${priorityStr}
 
-Provide a 2 to 3 bullet point expert recommendation (under 80 words total) explaining why these specific vehicles (${rankedCars.map((r) => `${r.car.brandName} ${r.car.modelName}`).join(', ')}) best match their choices in Egypt. Format with clean bullet points (•) and no markdown tables.`;
+Top 3 Matched Vehicles Evaluated from Database:
+${carsDetailText}
+
+Write a short, highly accurate expert recommendation (80-100 words) with bullet points (•) explaining why these 3 specific vehicles match their budget, driving style, and priority in the Egyptian car market. Cite exact HP, price, or fuel figures where relevant. Do NOT use markdown tables.`;
 
     const aiSummary = await sendChatMessageToAiAdvisor([{ role: 'user', content: aiPrompt }]);
 
@@ -280,9 +302,11 @@ Provide a 2 to 3 bullet point expert recommendation (under 80 words total) expla
       matchedCars: rankedCars,
     };
   } catch (err) {
+    const carListStr = rankedCars.map((r) => `${r.car.brandName} ${r.car.modelName}`).join(', ');
     return {
-      summary: `Based on your ${shapeStr} choice, ${budgetStr} budget, and ${priorityStr} priority, these 3 vehicles offer the best matching performance and daily reliability in Egypt.`,
+      summary: `• **Top Match (${rankedCars[0]?.car.brandName} ${rankedCars[0]?.car.modelName})**: Fits your ${budgetStr} budget with ${rankedCars[0]?.car.horsepower} HP and ${rankedCars[0]?.car.airbagsCount} airbags.\n• **Strong Alternatives (${carListStr})**: Offer reliable daily performance, low maintenance costs, and high value retention on Egyptian roads.`,
       matchedCars: rankedCars,
     };
   }
 }
+
