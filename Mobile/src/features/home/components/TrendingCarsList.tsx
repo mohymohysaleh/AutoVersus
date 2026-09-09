@@ -61,6 +61,60 @@ const TRENDING_CARS: TrendingCarItem[] = [
       'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80',
     slug: 'bmw-320i-m-sport',
   },
+  {
+    id: '5',
+    name: 'Chery Tiggo 7 Pro',
+    subTitle: 'Max Flagship',
+    price: 'From EGP 1,350,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80',
+    slug: 'chery-tiggo-7-pro-max',
+  },
+  {
+    id: '6',
+    name: 'MG 6',
+    subTitle: 'Luxury Turbo',
+    price: 'From EGP 1,390,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=800&q=80',
+    slug: 'mg-mg-6-luxury',
+  },
+  {
+    id: '7',
+    name: 'Hyundai Tucson',
+    subTitle: 'N-Line Turbo',
+    price: 'From EGP 2,100,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80',
+    slug: 'hyundai-tucson-facelift',
+  },
+  {
+    id: '8',
+    name: 'Kia Sportage',
+    subTitle: 'GT-Line Turbo',
+    price: 'From EGP 2,250,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=800&q=80',
+    slug: 'kia-sportage-gt-line',
+  },
+  {
+    id: '9',
+    name: 'BYD Seal EV',
+    subTitle: 'Design RWD',
+    price: 'From EGP 2,750,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1563720223523-491ff04651de?auto=format&fit=crop&w=800&q=80',
+    slug: 'byd-seal-ev-design',
+  },
+  {
+    id: '10',
+    name: 'Volkswagen Tiguan',
+    subTitle: 'R-Line Turbo',
+    price: 'From EGP 2,750,000',
+    imageUrl:
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=800&q=80',
+    slug: 'volkswagen-tiguan-r-line',
+  },
 ];
 
 interface TrendingCarsListProps {

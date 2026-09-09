@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { Header } from '../../src/features/home/components/Header';
-import { SearchBar } from '../../src/features/home/components/SearchBar';
 import { FindMyCarBanner } from '../../src/features/home/components/FindMyCarBanner';
 import { TrendingCarsList, TrendingCarItem } from '../../src/features/home/components/TrendingCarsList';
+import { PopularComparisonsList } from '../../src/features/home/components/PopularComparisonsList';
 import { LatestNewsList, NewsArticleCardItem } from '../../src/features/home/components/LatestNewsList';
 
 export default function HomeScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [currentLang, setCurrentLang] = useState<'EN' | 'AR'>('EN');
 
   const handleLanguageToggle = () => {
@@ -45,13 +44,6 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Search Bar */}
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          showFilter={false}
-        />
-
         {/* AI "Find My Car" Banner */}
         <FindMyCarBanner
           onQuizPress={() => router.push('/quiz')}
@@ -61,6 +53,16 @@ export default function HomeScreen() {
         <TrendingCarsList
           onSeeAllPress={() => router.push('/(tabs)/search')}
           onCarPress={handleCarPress}
+        />
+
+        {/* Head-to-Head Battle: Popular Comparisons Section */}
+        <PopularComparisonsList
+          onSeeAllPress={() =>
+            router.push({
+              pathname: '/(tabs)/compare',
+              params: { clear: 'true', reset: 'true', carSlugs: '', ts: Date.now().toString() },
+            })
+          }
         />
 
         {/* Automotive News: Latest Insights Horizontal List */}

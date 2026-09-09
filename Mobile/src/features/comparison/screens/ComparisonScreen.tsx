@@ -40,7 +40,7 @@ import { CarPickerModal } from '../components/CarPickerModal';
 import { AiChatModal } from '../components/AiChatModal';
 
 export const ComparisonScreen: React.FC = () => {
-  const params = useLocalSearchParams<{ carSlug?: string; carSlugs?: string; openChat?: string }>();
+  const params = useLocalSearchParams<{ carSlug?: string; carSlugs?: string; openChat?: string; clear?: string; reset?: string; ts?: string }>();
   const { isAuthenticated } = useAuthStore();
   const { isComparisonSaved, toggleSavedComparison } = useSavedStore();
 
@@ -78,8 +78,14 @@ export const ComparisonScreen: React.FC = () => {
     }
   }, [params.openChat]);
 
-  // Load car(s) from route params (carSlug or comma-separated carSlugs)
+  // Load car(s) from route params (carSlug or comma-separated carSlugs), or clear if clear=true
   useEffect(() => {
+    if (params.clear === 'true' || params.reset === 'true') {
+      setSelectedCars([]);
+      setHasRunComparison(false);
+      return;
+    }
+
     if (params.carSlugs) {
       const slugs = (params.carSlugs as string).split(',').filter(Boolean);
       const loadedCars: ComparisonCar[] = [];
@@ -140,7 +146,7 @@ export const ComparisonScreen: React.FC = () => {
         });
       }
     }
-  }, [params.carSlug, params.carSlugs]);
+  }, [params.carSlug, params.carSlugs, params.clear, params.reset, params.ts]);
 
   const requireAuthOrNavigateToProfile = (): boolean => {
     if (!isAuthenticated) {
@@ -399,24 +405,6 @@ export const ComparisonScreen: React.FC = () => {
             </TouchableOpacity>
           )}
         </View>
-
-        {/* Ask AI Chatbot Trigger Card */}
-        <TouchableOpacity
-          style={styles.askAiCardTrigger}
-          onPress={handleOpenChat}
-          activeOpacity={0.85}
-        >
-          <View style={styles.askAiIconCircle}>
-            <Ionicons name="chatbubbles" size={18} color="#38BDF8" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.askAiCardTitle}>Ask AutoVersus AI Advisor</Text>
-            <Text style={styles.askAiCardSub}>
-              Have questions about resale value, reliability, parts, or maintenance? Chat live with AI!
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#38BDF8" />
-        </TouchableOpacity>
 
         {/* AI Smart Decision Banner */}
         {(hasRunComparison || isAiLoading) && (

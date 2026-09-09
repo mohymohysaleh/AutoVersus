@@ -3,25 +3,25 @@ export interface ShiftNewsArticle {
   slug: string;
   coverImage: string;
   isFeatured?: boolean;
-  
+
   titleEn: string;
   titleAr: string;
-  
+
   categoryEn: string;
   categoryAr: string;
-  
+
   summaryEn: string;
   summaryAr: string;
-  
+
   authorNameEn: string;
   authorNameAr: string;
-  
+
   publishedDateEn: string;
   publishedDateAr: string;
-  
+
   readTimeEn: string;
   readTimeAr: string;
-  
+
   fullContentEn: string;
   fullContentAr: string;
 
