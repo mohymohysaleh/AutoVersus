@@ -3,8 +3,22 @@ import { ITokenService, JwtPayload } from '../application/ports/token-service.in
 import { AuthTokensDto } from '../application/dtos/auth.dtos.js';
 
 export class JwtTokenService implements ITokenService {
-  private readonly jwtSecret = process.env.JWT_SECRET || 'autoversus_jwt_secret_key_2026';
-  private readonly refreshSecret = process.env.JWT_REFRESH_SECRET || 'autoversus_jwt_refresh_secret_key_2026';
+  private get jwtSecret(): string {
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: JWT_SECRET environment variable is missing.');
+    }
+    return secret || 'autoversus_dev_jwt_secret_fallback_key';
+  }
+
+  private get refreshSecret(): string {
+    const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: JWT_REFRESH_SECRET environment variable is missing.');
+    }
+    return secret || 'autoversus_dev_jwt_refresh_secret_fallback_key';
+  }
+
   private readonly accessTokenExpiry = 15 * 60; // 15 minutes in seconds
 
   generateTokens(payload: JwtPayload): AuthTokensDto {

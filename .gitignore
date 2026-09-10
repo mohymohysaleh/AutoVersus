@@ -1,0 +1,11 @@
+# Root GitIgnore Rules
+node_modules/
+dist/
+.expo/
+*.log
+
+# Ignore all environment & config files (.env, .env.local, .env.example, etc.)
+.env
+.env.*
+.env.example
+*.env
