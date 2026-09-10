@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { NewsArticleItem } from '../types/news.types';
 import { ShiftNewsArticle } from '../data/shift-news.data';
 import { useAuthStore } from '../../identity/store/auth.store';
+import { OptimizedImage } from '../../../shared/components/OptimizedImage';
 
 interface ArticleListItemProps {
   article: NewsArticleItem | ShiftNewsArticle;
@@ -13,7 +14,6 @@ interface ArticleListItemProps {
 
 export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPress }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [imgSrc, setImgSrc] = useState(article.coverImage);
   const { isAuthenticated } = useAuthStore();
 
   const handleBookmarkPress = () => {
@@ -42,18 +42,10 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPre
     >
       {/* Left Thumbnail Image */}
       <View style={styles.imageContainer}>
-        <Image
-          source={{
-            uri: imgSrc || article.coverImage,
-            headers: {
-              Referer: 'https://www.shift-eg.com/',
-            },
-          }}
+        <OptimizedImage
+          uri={article.coverImage}
           style={styles.image}
-          resizeMode="cover"
-          onError={() => {
-            setImgSrc('https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80');
-          }}
+          contentFit="cover"
         />
       </View>
 

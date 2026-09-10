@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { tokenStorage } from '../../features/identity/store/auth.store';
+import { secureStorageService } from './secure-storage.service';
 
 // Dynamic host IP resolution for Expo Go / Emulators
 const hostUri = Constants.expoConfig?.hostUri;
@@ -21,9 +21,9 @@ export const apiClient = axios.create({
 // Request Interceptor: Attach Auth Bearer Token from EncryptedSharedPreferences
 apiClient.interceptors.request.use(
   async (config) => {
-    let accessToken = tokenStorage.getAccessToken();
+    let accessToken = secureStorageService.getAccessTokenSync();
     if (!accessToken) {
-      accessToken = await tokenStorage.getAccessTokenAsync();
+      accessToken = await secureStorageService.getAccessToken();
     }
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;

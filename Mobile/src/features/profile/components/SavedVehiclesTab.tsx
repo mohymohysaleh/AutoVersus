@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSavedStore } from '../store/saved.store';
+import { OptimizedImage } from '../../../shared/components/OptimizedImage';
 
 export const SavedVehiclesTab: React.FC = () => {
   const savedVehicles = useSavedStore((state) => state.savedVehicles);
@@ -52,7 +53,7 @@ export const SavedVehiclesTab: React.FC = () => {
         >
           {/* Image */}
           <View style={styles.imageContainer}>
-            <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+            <OptimizedImage uri={item.imageUrl} style={styles.image} contentFit="cover" />
 
             {/* Filled Heart Button */}
             <TouchableOpacity

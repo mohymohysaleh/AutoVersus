@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SavedComparisonItem } from '../types/profile.types';
 import { useSavedStore } from '../store/saved.store';
+import { OptimizedImage } from '../../../shared/components/OptimizedImage';
 
 export const SavedComparisonsTab: React.FC = () => {
   const savedComparisons = useSavedStore((state) => state.savedComparisons);
@@ -48,10 +49,10 @@ export const SavedComparisonsTab: React.FC = () => {
           {/* Dual Side-by-Side Car Images */}
           <View style={styles.imagesRow}>
             <View style={styles.halfImageContainer}>
-              <Image source={{ uri: item.leftCarImage }} style={styles.carImage} resizeMode="cover" />
+              <OptimizedImage uri={item.leftCarImage} style={styles.carImage} contentFit="cover" />
             </View>
             <View style={styles.halfImageContainer}>
-              <Image source={{ uri: item.rightCarImage }} style={styles.carImage} resizeMode="cover" />
+              <OptimizedImage uri={item.rightCarImage} style={styles.carImage} contentFit="cover" />
             </View>
           </View>
 

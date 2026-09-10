@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { CarItem } from '../types/catalog.types';
 import { useAuthStore } from '../../identity/store/auth.store';
 import { useSavedStore } from '../../profile/store/saved.store';
+import { OptimizedImage } from '../../../shared/components/OptimizedImage';
 
 interface CarGridCardProps {
   car: CarItem;
@@ -12,7 +13,6 @@ interface CarGridCardProps {
 }
 
 export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
-  const [imgSrc, setImgSrc] = useState(car.imageUrl);
   const { isAuthenticated } = useAuthStore();
   const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
 
@@ -42,13 +42,10 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
     >
       {/* Image Container */}
       <View nativeID={`catalog-car-image-container-${car.id}`} style={styles.imageContainer}>
-        <Image
-          source={{ uri: imgSrc }}
+        <OptimizedImage
+          uri={car.imageUrl}
           style={styles.image}
-          resizeMode="cover"
-          onError={() => {
-            setImgSrc('https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=800&q=80');
-          }}
+          contentFit="cover"
         />
 
         {/* Favorite Floating Heart Button */}
