@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { AuthController } from './auth.controller.js';
 import { authenticateJwt } from '../../../shared/presentation/middlewares/auth.middleware.js';
 import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
+import { authRateLimiter } from '../../../shared/presentation/middlewares/rate-limiter.middleware.js';
 
 const router = Router();
 const controller = new AuthController();
@@ -88,7 +89,7 @@ const updatePreferencesSchema = z.object({
  *       409:
  *         description: Email already exists
  */
-router.post('/register', validateRequest({ body: registerSchema }), controller.register);
+router.post('/register', authRateLimiter, validateRequest({ body: registerSchema }), controller.register);
 
 /**
  * @openapi
@@ -119,7 +120,7 @@ router.post('/register', validateRequest({ body: registerSchema }), controller.r
  *       401:
  *         description: Invalid email or password
  */
-router.post('/login', validateRequest({ body: loginSchema }), controller.login);
+router.post('/login', authRateLimiter, validateRequest({ body: loginSchema }), controller.login);
 
 /**
  * @openapi
@@ -145,7 +146,7 @@ router.post('/login', validateRequest({ body: loginSchema }), controller.login);
  *       401:
  *         description: Invalid or expired refresh token
  */
-router.post('/refresh', validateRequest({ body: refreshSchema }), controller.refresh);
+router.post('/refresh', authRateLimiter, validateRequest({ body: refreshSchema }), controller.refresh);
 
 /**
  * @openapi
@@ -227,6 +228,6 @@ router.patch('/preferences', authenticateJwt, validateRequest({ body: updatePref
  *       400:
  *         description: Invalid Google credentials
  */
-router.post('/google', validateRequest({ body: googleAuthSchema }), controller.googleLogin);
+router.post('/google', authRateLimiter, validateRequest({ body: googleAuthSchema }), controller.googleLogin);
 
 export default router;

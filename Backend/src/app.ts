@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './shared/infrastructure/swagger/swagger.config.js';
 import { errorHandler } from './shared/presentation/middlewares/error-handler.middleware.js';
+import { publicApiRateLimiter } from './shared/presentation/middlewares/rate-limiter.middleware.js';
 import catalogRouter from './modules/catalog/presentation/catalog.routes.js';
 import authRouter from './modules/identity/presentation/auth.routes.js';
 import newsRouter from './modules/news/presentation/news.routes.js';
@@ -32,6 +33,9 @@ export const createApp = (): Application => {
   // Swagger OpenAPI Documentation UI
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+  // Global Rate Limiting for API routes
+  app.use('/api', publicApiRateLimiter);
 
   // Module Routes
   app.use('/api/v1/catalog', catalogRouter);

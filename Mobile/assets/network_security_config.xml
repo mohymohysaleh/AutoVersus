@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Base Configuration: Enforce HTTPS Exclusively & Disable Cleartext HTTP Traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Production Domain Enforcement -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">autoversus.com</domain>
+        <domain includeSubdomains="true">api.autoversus.com</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+    </domain-config>
+</network-security-config>

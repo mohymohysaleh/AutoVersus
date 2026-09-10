@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { RecommendationController } from './recommendation.controller.js';
 import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
+import { aiRateLimiter } from '../../../shared/presentation/middlewares/rate-limiter.middleware.js';
 
 const router = Router();
 const controller = new RecommendationController();
@@ -68,7 +69,7 @@ const chatWithAdvisorBodySchema = z.object({
  *       200:
  *         description: AI comparison verdict with winning car and reason text
  */
-router.post('/compare', validateRequest({ body: compareVehiclesBodySchema }), (req, res) => controller.compareVehicles(req, res));
-router.post('/chat', validateRequest({ body: chatWithAdvisorBodySchema }), (req, res) => controller.chatWithAdvisor(req, res));
+router.post('/compare', aiRateLimiter, validateRequest({ body: compareVehiclesBodySchema }), (req, res) => controller.compareVehicles(req, res));
+router.post('/chat', aiRateLimiter, validateRequest({ body: chatWithAdvisorBodySchema }), (req, res) => controller.chatWithAdvisor(req, res));
 
 export default router;
