@@ -230,4 +230,30 @@ router.patch('/preferences', authenticateJwt, validateRequest({ body: updatePref
  */
 router.post('/google', authRateLimiter, validateRequest({ body: googleAuthSchema }), controller.googleLogin);
 
+/**
+ * @openapi
+ * /api/v1/auth/logout:
+ *   post:
+ *     summary: Revoke access and refresh tokens across distributed instances
+ *     tags:
+ *       - Identity & Auth
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successfully logged out & tokens revoked
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/logout', controller.logout);
+
 export default router;

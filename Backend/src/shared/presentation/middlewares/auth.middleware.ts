@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { JwtTokenService } from '../../../modules/identity/infrastructure/jwt-token-service.js';
 import { JwtPayload } from '../../../modules/identity/application/ports/token-service.interface.js';
+import { tokenBlacklistService } from '../../infrastructure/redis/token-blacklist.service.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
@@ -8,7 +9,7 @@ export interface AuthenticatedRequest extends Request {
 
 const tokenService = new JwtTokenService();
 
-export const authenticateJwt = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authenticateJwt = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -22,6 +23,18 @@ export const authenticateJwt = (req: AuthenticatedRequest, res: Response, next: 
   }
 
   const token = authHeader.split(' ')[1];
+
+  const isRevoked = await tokenBlacklistService.isBlacklisted(token);
+  if (isRevoked) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        message: 'Token has been revoked/logged out.',
+        statusCode: 401,
+      },
+    });
+  }
+
   const payload = tokenService.verifyAccessToken(token);
 
   if (!payload) {

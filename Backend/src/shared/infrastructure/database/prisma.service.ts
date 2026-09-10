@@ -12,3 +12,5 @@ export class PrismaService {
     return PrismaService.instance;
   }
 }
+
+export const prisma = PrismaService.getInstance();

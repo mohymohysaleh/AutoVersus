@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { redisService } from '../../infrastructure/redis/redis.service.js';
 
 interface RateLimitRecord {
   timestamps: number[];
@@ -11,12 +12,14 @@ export interface RateLimiterOptions {
   keyGenerator?: (req: Request) => string;
 }
 
+/**
+ * Local in-memory store for fallback when Redis is unconfigured or offline.
+ */
 class InMemorySlidingWindowStore {
   private hits = new Map<string, RateLimitRecord>();
   private cleanupInterval: NodeJS.Timeout;
 
   constructor(cleanupIntervalMs: number = 60 * 1000) {
-    // Periodic garbage collection for expired IP/Account entries
     this.cleanupInterval = setInterval(() => this.cleanup(), cleanupIntervalMs);
     if (this.cleanupInterval.unref) {
       this.cleanupInterval.unref();
@@ -33,7 +36,6 @@ class InMemorySlidingWindowStore {
       this.hits.set(key, record);
     }
 
-    // Filter out timestamps outside the active sliding window
     record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
     record.timestamps.push(now);
 
@@ -59,10 +61,50 @@ class InMemorySlidingWindowStore {
   }
 }
 
-const store = new InMemorySlidingWindowStore();
+const memoryStore = new InMemorySlidingWindowStore();
 
 /**
- * Express Middleware Factory for Sliding Window Rate Limiting per IP and Account ID
+ * Distributed Redis Sliding Window Store
+ */
+async function incrementRedisStore(
+  key: string,
+  windowMs: number
+): Promise<{ count: number; ttlMs: number } | null> {
+  const client = redisService.getClient();
+  if (!client || !redisService.isAvailable()) {
+    return null;
+  }
+
+  try {
+    const now = Date.now();
+    const clearBefore = now - windowMs;
+    const redisKey = `ratelimit:${key}`;
+    const member = `${now}:${Math.random().toString(36).substring(2, 8)}`;
+
+    const pipeline = client.pipeline();
+    pipeline.zremrangebyscore(redisKey, 0, clearBefore);
+    pipeline.zadd(redisKey, now, member);
+    pipeline.zcard(redisKey);
+    pipeline.pexpire(redisKey, windowMs);
+
+    const results = await pipeline.exec();
+    if (!results || !results[2]) {
+      return null;
+    }
+
+    const count = (results[2][1] as number) || 1;
+    return {
+      count,
+      ttlMs: windowMs,
+    };
+  } catch (err: any) {
+    console.warn('[RateLimiter] Redis store error, using in-memory fallback:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Express Middleware Factory for Distributed & Stateless Sliding Window Rate Limiting
  */
 export const createRateLimiter = (options: RateLimiterOptions) => {
   const {
@@ -72,7 +114,7 @@ export const createRateLimiter = (options: RateLimiterOptions) => {
     keyGenerator,
   } = options;
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
     const userId = user?.userId ? `user_${user.userId}` : '';
     const rawIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown_ip';
@@ -81,7 +123,12 @@ export const createRateLimiter = (options: RateLimiterOptions) => {
     const defaultKey = userId ? `${userId}:${req.baseUrl || ''}${req.path}` : `${ip}:${req.baseUrl || ''}${req.path}`;
     const key = keyGenerator ? keyGenerator(req) : defaultKey;
 
-    const { count, ttlMs } = store.increment(key, windowMs);
+    let result = await incrementRedisStore(key, windowMs);
+    if (!result) {
+      result = memoryStore.increment(key, windowMs);
+    }
+
+    const { count, ttlMs } = result;
 
     res.setHeader('X-RateLimit-Limit', max);
     res.setHeader('X-RateLimit-Remaining', Math.max(0, max - count));
@@ -105,7 +152,6 @@ export const createRateLimiter = (options: RateLimiterOptions) => {
 
 /**
  * Strict Rate Limiter for Authentication Endpoints (Login, Register, Refresh, OAuth)
- * Threshold: 5 requests per 15 minutes per IP/Account
  */
 export const authRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -115,7 +161,6 @@ export const authRateLimiter = createRateLimiter({
 
 /**
  * Strict Rate Limiter for AI / Cost-Intensive Endpoints
- * Threshold: 10 requests per 15 minutes per IP/Account
  */
 export const aiRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -125,7 +170,6 @@ export const aiRateLimiter = createRateLimiter({
 
 /**
  * General Public API Rate Limiter
- * Threshold: 100 requests per 15 minutes per IP/Account
  */
 export const publicApiRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,

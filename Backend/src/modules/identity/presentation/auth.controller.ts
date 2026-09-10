@@ -7,6 +7,7 @@ import { LoginUserUseCase } from '../application/use-cases/login-user.use-case.j
 import { GetUserProfileUseCase } from '../application/use-cases/get-user-profile.use-case.js';
 import { UserEntity } from '../domain/entities/user.entity.js';
 import { AuthenticatedRequest } from '../../../shared/presentation/middlewares/auth.middleware.js';
+import { tokenBlacklistService } from '../../../shared/infrastructure/redis/token-blacklist.service.js';
 
 export class AuthController {
   private userRepo = new PrismaUserRepository();
@@ -234,6 +235,31 @@ export class AuthController {
       res.json({
         success: true,
         data: updated,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public logout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authHeader = req.headers.authorization;
+      const { refreshToken } = req.body || {};
+
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        await tokenBlacklistService.blacklistToken(token, 86400);
+      }
+
+      if (refreshToken) {
+        await tokenBlacklistService.blacklistToken(refreshToken, 604800);
+      }
+
+      res.json({
+        success: true,
+        data: {
+          message: 'Logged out successfully. Tokens revoked across all distributed nodes.',
+        },
       });
     } catch (error) {
       next(error);
