@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { LoggerService } from '../../infrastructure/logger/logger.service.js';
+import { getCorrelationId } from '../../infrastructure/logger/correlation.context.js';
 
 /**
  * Global Express Error Handler
- * Logs detailed internal stack traces on the server while returning sanitized, generic error responses to clients in production.
+ * Logs detailed structured JSON stack traces on the server while returning sanitized error responses with correlation requestId to clients.
  */
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // Log detailed error trace internally for server diagnostics
-  LoggerService.error(`Unhandled Exception on ${req.method} ${req.path}`, {
-    message: err.message,
-    stack: err.stack,
-    name: err.name,
-    statusCode: err.statusCode,
+  const correlationId = getCorrelationId() || (res.getHeader('X-Request-ID') as string) || 'N/A';
+
+  // Log detailed error trace internally with correlation ID for log aggregators (Datadog/CloudWatch/ELK)
+  LoggerService.error(`Unhandled Exception on ${req.method} ${req.path}`, err, {
+    path: req.path,
+    method: req.method,
+    statusCode: err.statusCode || 500,
   });
 
   const statusCode = err.statusCode && typeof err.statusCode === 'number' ? err.statusCode : 500;
@@ -28,6 +30,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     error: {
       message: clientMessage,
       statusCode,
+      requestId: correlationId,
       timestamp: new Date().toISOString(),
       path: req.path,
       ...(isProduction ? {} : { stack: err.stack }),

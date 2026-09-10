@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './shared/infrastructure/swagger/swagger.config.js';
 import { errorHandler } from './shared/presentation/middlewares/error-handler.middleware.js';
+import { correlationMiddleware } from './shared/presentation/middlewares/correlation.middleware.js';
 import { publicApiRateLimiter } from './shared/presentation/middlewares/rate-limiter.middleware.js';
 import catalogRouter from './modules/catalog/presentation/catalog.routes.js';
 import authRouter from './modules/identity/presentation/auth.routes.js';
@@ -16,6 +17,9 @@ import { redisService } from './shared/infrastructure/redis/redis.service.js';
 
 export const createApp = (): Application => {
   const app = express();
+
+  // Attach correlation ID & AsyncLocalStorage context at the very top of the request pipeline
+  app.use(correlationMiddleware);
 
   app.use(helmet({
     contentSecurityPolicy: false, // Disable CSP for Swagger UI inline scripts
