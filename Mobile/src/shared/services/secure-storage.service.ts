@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { AuthTokens, UserProfile } from '../../features/identity/types/auth.types';
 import { SavedVehicle, SavedComparisonItem } from '../../features/profile/types/profile.types';
+import { logger } from './logger.service';
 
 const ACCESS_TOKEN_KEY = 'autoversus_sec_access_token';
 const REFRESH_TOKEN_KEY = 'autoversus_sec_refresh_token';
@@ -36,7 +37,7 @@ class SecureStorageService {
         keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error while saving tokens:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error while saving tokens:', error);
     }
   }
 
@@ -62,7 +63,7 @@ class SecureStorageService {
       cachedAccessToken = token;
       return token;
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error reading access token:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error reading access token:', error);
       return null;
     }
   }
@@ -85,7 +86,7 @@ class SecureStorageService {
       cachedRefreshToken = token;
       return token;
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error reading refresh token:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error reading refresh token:', error);
       return null;
     }
   }
@@ -109,7 +110,7 @@ class SecureStorageService {
         keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error saving user profile:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error saving user profile:', error);
     }
   }
 
@@ -141,7 +142,7 @@ class SecureStorageService {
       }
       return null;
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error reading user profile:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error reading user profile:', error);
       return null;
     }
   }
@@ -165,7 +166,7 @@ class SecureStorageService {
         keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error saving vehicles:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error saving vehicles:', error);
     }
   }
 
@@ -195,7 +196,7 @@ class SecureStorageService {
         return JSON.parse(raw);
       }
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error reading vehicles:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error reading vehicles:', error);
     }
     return [];
   }
@@ -219,7 +220,7 @@ class SecureStorageService {
         keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error saving comparisons:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error saving comparisons:', error);
     }
   }
 
@@ -249,7 +250,7 @@ class SecureStorageService {
         return JSON.parse(raw);
       }
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error reading comparisons:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error reading comparisons:', error);
     }
     return [];
   }
@@ -276,7 +277,7 @@ class SecureStorageService {
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
       await SecureStore.deleteItemAsync(USER_PROFILE_KEY);
     } catch (error) {
-      console.warn('⚠️ EncryptedSharedPreferences error clearing tokens:', error);
+      logger.warn('⚠️ EncryptedSharedPreferences error clearing tokens:', error);
     }
   }
 }
