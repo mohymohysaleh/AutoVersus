@@ -43,9 +43,15 @@ export default function RootLayout() {
 }
 
 import { LanguageProvider } from '../src/shared/context/LanguageContext';
+import { useAuthStore } from '../src/features/identity/store/auth.store';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    // Restore user session on app startup / screen reload
+    useAuthStore.getState().loadUserProfile();
+  }, []);
 
   return (
     <LanguageProvider>

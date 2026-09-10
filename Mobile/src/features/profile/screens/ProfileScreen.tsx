@@ -8,6 +8,7 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -19,7 +20,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export const ProfileScreen: React.FC = () => {
   const { t, language } = useLanguage();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isInitializing } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'saved' | 'comparisons' | 'account'>('saved');
 
   const isEn = language === 'EN';
@@ -37,6 +38,20 @@ export const ProfileScreen: React.FC = () => {
       params: { mode: 'signin' },
     });
   };
+
+  // =========================================================================
+  // INITIALIZING LOADING STATE (Prevents Guest Screen Flash on Reload)
+  // =========================================================================
+  if (isInitializing) {
+    return (
+      <SafeAreaView nativeID="profile-loading-container" testID="profile-loading-container" style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0F2942" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   // =========================================================================
   // GUEST STATE VIEW (When user is not signed in)
@@ -338,5 +353,11 @@ const styles = StyleSheet.create({
     color: '#0F2942',
     fontSize: 15,
     fontWeight: '700',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });

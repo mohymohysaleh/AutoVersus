@@ -18,10 +18,13 @@ export const apiClient = axios.create({
   },
 });
 
-// Request Interceptor: Attach Auth Bearer Token if available
+// Request Interceptor: Attach Auth Bearer Token from EncryptedSharedPreferences
 apiClient.interceptors.request.use(
-  (config) => {
-    const accessToken = tokenStorage.getAccessToken();
+  async (config) => {
+    let accessToken = tokenStorage.getAccessToken();
+    if (!accessToken) {
+      accessToken = await tokenStorage.getAccessTokenAsync();
+    }
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -34,7 +37,15 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const message = error.response?.data?.error?.message || error.response?.data?.message || error.message || 'An unexpected network error occurred';
-    return Promise.reject(new Error(message));
+    const message =
+      error.response?.data?.error?.message ||
+      error.response?.data?.message ||
+      error.message ||
+      'An unexpected network error occurred';
+    const customError = new Error(message) as any;
+    customError.status = error.response?.status;
+    customError.response = error.response;
+    return Promise.reject(customError);
   }
 );
+

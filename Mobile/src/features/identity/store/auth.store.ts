@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { Platform } from 'react-native';
 import { authApi } from '../api/auth.api';
 import {
   UserProfile,
@@ -8,47 +7,27 @@ import {
   LoginUserDto,
   GoogleAuthDto,
 } from '../types/auth.types';
-
-const ACCESS_TOKEN_KEY = 'autoversus_access_token';
-const REFRESH_TOKEN_KEY = 'autoversus_refresh_token';
-
-// In-memory token cache for fast access
-let currentAccessToken: string | null = null;
-let currentRefreshToken: string | null = null;
+import { secureStorageService } from '../../../shared/services/secure-storage.service';
 
 export const tokenStorage = {
   getAccessToken(): string | null {
-    if (currentAccessToken) return currentAccessToken;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      currentAccessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    }
-    return currentAccessToken;
+    return secureStorageService.getAccessTokenSync();
   },
 
-  getRefreshToken(): string | null {
-    if (currentRefreshToken) return currentRefreshToken;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      currentRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    }
-    return currentRefreshToken;
+  async getAccessTokenAsync(): Promise<string | null> {
+    return secureStorageService.getAccessToken();
   },
 
-  setTokens(tokens: AuthTokens) {
-    currentAccessToken = tokens.accessToken;
-    currentRefreshToken = tokens.refreshToken;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-    }
+  async getRefreshToken(): Promise<string | null> {
+    return secureStorageService.getRefreshToken();
   },
 
-  clearTokens() {
-    currentAccessToken = null;
-    currentRefreshToken = null;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-    }
+  async setTokens(tokens: AuthTokens) {
+    await secureStorageService.saveTokens(tokens);
+  },
+
+  async clearTokens() {
+    await secureStorageService.clearAll();
   },
 };
 
@@ -56,13 +35,14 @@ interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitializing: boolean;
   error: string | null;
 
   // Actions
   login: (dto: LoginUserDto) => Promise<void>;
   register: (dto: RegisterUserDto) => Promise<void>;
   loginWithGoogle: (dto: GoogleAuthDto) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loadUserProfile: () => Promise<void>;
   clearError: () => void;
 }
@@ -71,17 +51,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitializing: true,
   error: null,
 
   login: async (dto: LoginUserDto) => {
     set({ isLoading: true, error: null });
     try {
       const data = await authApi.login(dto);
-      tokenStorage.setTokens(data.tokens);
+      await tokenStorage.setTokens(data.tokens);
+      const userProfile: UserProfile = { ...data.user, authProvider: 'LOCAL' };
+      await secureStorageService.saveUserProfile(userProfile);
       set({
-        user: { ...data.user, authProvider: 'LOCAL' },
+        user: userProfile,
         isAuthenticated: true,
         isLoading: false,
+        isInitializing: false,
         error: null,
       });
     } catch (err: any) {
@@ -97,11 +81,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await authApi.register(dto);
-      tokenStorage.setTokens(data.tokens);
+      await tokenStorage.setTokens(data.tokens);
+      const userProfile: UserProfile = { ...data.user, authProvider: 'LOCAL' };
+      await secureStorageService.saveUserProfile(userProfile);
       set({
-        user: { ...data.user, authProvider: 'LOCAL' },
+        user: userProfile,
         isAuthenticated: true,
         isLoading: false,
+        isInitializing: false,
         error: null,
       });
     } catch (err: any) {
@@ -117,11 +104,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await authApi.googleLogin(dto);
-      tokenStorage.setTokens(data.tokens);
+      await tokenStorage.setTokens(data.tokens);
+      const userProfile: UserProfile = { ...data.user, authProvider: 'GOOGLE' };
+      await secureStorageService.saveUserProfile(userProfile);
       set({
-        user: { ...data.user, authProvider: 'GOOGLE' },
+        user: userProfile,
         isAuthenticated: true,
         isLoading: false,
+        isInitializing: false,
         error: null,
       });
     } catch (err: any) {
@@ -133,35 +123,61 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: () => {
-    tokenStorage.clearTokens();
+  logout: async () => {
+    await tokenStorage.clearTokens();
     set({
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitializing: false,
       error: null,
     });
   },
 
   loadUserProfile: async () => {
-    const token = tokenStorage.getAccessToken();
-    if (!token) return;
+    const token = await secureStorageService.getAccessToken();
+    const cachedUser = await secureStorageService.getUserProfile();
 
-    set({ isLoading: true });
+    if (!token && !cachedUser) {
+      set({ isLoading: false, isAuthenticated: false, user: null, isInitializing: false });
+      return;
+    }
+
+    // Set cached user immediately for instant zero-latency UI session restoration
+    if (cachedUser) {
+      set({ user: cachedUser, isAuthenticated: true, isLoading: false, isInitializing: false });
+    } else {
+      set({ isLoading: true });
+    }
+
+    if (!token) {
+      set({ isInitializing: false });
+      return;
+    }
+
     try {
       const user = await authApi.getProfile();
+      await secureStorageService.saveUserProfile(user);
       set({
         user,
         isAuthenticated: true,
         isLoading: false,
+        isInitializing: false,
       });
     } catch (err: any) {
-      tokenStorage.clearTokens();
-      set({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
+      // Only perform secure logout if profile fetch fails due to explicit 401 Unauthorized
+      if (err?.status === 401 || err?.response?.status === 401) {
+        await tokenStorage.clearTokens();
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          isInitializing: false,
+        });
+      } else {
+        // Network error or backend offline - preserve cached user session
+        set({ isLoading: false, isInitializing: false });
+      }
     }
   },
 
