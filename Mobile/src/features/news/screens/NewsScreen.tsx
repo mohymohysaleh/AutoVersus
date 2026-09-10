@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -6,9 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  FlatList,
   StyleSheet,
   StatusBar,
   Platform,
+  ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HeroArticleCard } from '../components/HeroArticleCard';
@@ -66,12 +68,72 @@ export const NewsScreen: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const handleArticlePress = (article: ShiftNewsArticle | NewsArticleItem) => {
+  const handleArticlePress = useCallback((article: ShiftNewsArticle | NewsArticleItem) => {
     router.push({
       pathname: '/news/[slug]',
       params: { slug: article.slug },
     });
-  };
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<ShiftNewsArticle>) => (
+      <View style={styles.listItemWrapper}>
+        <ArticleListItem article={item} onPress={() => handleArticlePress(item)} />
+      </View>
+    ),
+    [handleArticlePress]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 125,
+      offset: 125 * index,
+      index,
+    }),
+    []
+  );
+
+  const ListHeader = useCallback(
+    () => (
+      <>
+        {/* Horizontal Category Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {categories.map((cat) => {
+            const isActive = cat.key === activeCategory;
+            return (
+              <TouchableOpacity
+                key={cat.key}
+                style={[styles.chip, isActive ? styles.chipActive : styles.chipInactive]}
+                onPress={() => setActiveCategory(cat.key)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextInactive]}>
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Hero Featured Article Card */}
+        <HeroArticleCard
+          article={featuredArticle}
+          onPress={() => handleArticlePress(featuredArticle)}
+        />
+
+        {/* Latest Stories Section Header */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>{t('news.latestStories')}</Text>
+          <Text style={styles.articleCount}>{filteredArticles.length} {t('news.articlesCount')}</Text>
+        </View>
+      </>
+    ),
+    [activeCategory, categories, featuredArticle, filteredArticles.length, handleArticlePress, t]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -117,53 +179,20 @@ export const NewsScreen: React.FC = () => {
         )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Horizontal Category Chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        >
-          {categories.map((cat) => {
-            const isActive = cat.key === activeCategory;
-            return (
-              <TouchableOpacity
-                key={cat.key}
-                style={[styles.chip, isActive ? styles.chipActive : styles.chipInactive]}
-                onPress={() => setActiveCategory(cat.key)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextInactive]}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Hero Featured Article Card */}
-        <HeroArticleCard
-          article={featuredArticle}
-          onPress={() => handleArticlePress(featuredArticle)}
-        />
-
-        {/* Latest Stories Section Header */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>{t('news.latestStories')}</Text>
-          <Text style={styles.articleCount}>{filteredArticles.length} {t('news.articlesCount')}</Text>
-        </View>
-
-        {/* Vertical List of News Items */}
-        <View style={styles.listContainer}>
-          {filteredArticles.map((article) => (
-            <ArticleListItem
-              key={article.id}
-              article={article}
-              onPress={() => handleArticlePress(article)}
-            />
-          ))}
-        </View>
-      </ScrollView>
+      {/* Virtualized Main Article Feed */}
+      <FlatList
+        data={filteredArticles}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        ListHeaderComponent={ListHeader}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        initialNumToRender={6}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === 'android'}
+      />
     </SafeAreaView>
   );
 };
@@ -268,6 +297,9 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   listContainer: {
+    paddingHorizontal: 20,
+  },
+  listItemWrapper: {
     paddingHorizontal: 20,
   },
 });

@@ -1,21 +1,93 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Platform, ListRenderItemInfo } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SavedComparisonItem } from '../types/profile.types';
 import { useSavedStore } from '../store/saved.store';
 import { OptimizedImage } from '../../../shared/components/OptimizedImage';
 
+interface SavedComparisonCardProps {
+  item: SavedComparisonItem;
+  onOpen: (comparison: SavedComparisonItem) => void;
+  onRemove: (id: string) => void;
+}
+
+const SavedComparisonCard: React.FC<SavedComparisonCardProps> = React.memo(({ item, onOpen, onRemove }) => {
+  return (
+    <View style={styles.card}>
+      {/* Dual Side-by-Side Car Images */}
+      <View style={styles.imagesRow}>
+        <View style={styles.halfImageContainer}>
+          <OptimizedImage uri={item.leftCarImage} style={styles.carImage} contentFit="cover" />
+        </View>
+        <View style={styles.halfImageContainer}>
+          <OptimizedImage uri={item.rightCarImage} style={styles.carImage} contentFit="cover" />
+        </View>
+      </View>
+
+      {/* Details */}
+      <View style={styles.cardBody}>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.titleText} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => onRemove(item.id)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.dateText}>{item.createdDate}</Text>
+
+        {/* Open Comparison Button */}
+        <TouchableOpacity
+          style={styles.openButton}
+          onPress={() => onOpen(item)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.openButtonText}>Open Comparison</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+});
+
 export const SavedComparisonsTab: React.FC = () => {
   const savedComparisons = useSavedStore((state) => state.savedComparisons);
   const removeSavedComparison = useSavedStore((state) => state.removeSavedComparison);
 
-  const handleOpenComparison = (comparison: SavedComparisonItem) => {
+  const handleOpenComparison = useCallback((comparison: SavedComparisonItem) => {
     router.push({
       pathname: '/(tabs)/compare',
       params: { carSlugs: comparison.variantSlugs.join(',') },
     });
-  };
+  }, []);
+
+  const handleRemoveComparison = useCallback(
+    (id: string) => {
+      removeSavedComparison(id);
+    },
+    [removeSavedComparison]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<SavedComparisonItem>) => (
+      <SavedComparisonCard item={item} onOpen={handleOpenComparison} onRemove={handleRemoveComparison} />
+    ),
+    [handleOpenComparison, handleRemoveComparison]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 270,
+      offset: 270 * index,
+      index,
+    }),
+    []
+  );
 
   if (savedComparisons.length === 0) {
     return (
@@ -44,46 +116,12 @@ export const SavedComparisonsTab: React.FC = () => {
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
-      renderItem={({ item }) => (
-        <View style={styles.card}>
-          {/* Dual Side-by-Side Car Images */}
-          <View style={styles.imagesRow}>
-            <View style={styles.halfImageContainer}>
-              <OptimizedImage uri={item.leftCarImage} style={styles.carImage} contentFit="cover" />
-            </View>
-            <View style={styles.halfImageContainer}>
-              <OptimizedImage uri={item.rightCarImage} style={styles.carImage} contentFit="cover" />
-            </View>
-          </View>
-
-          {/* Details */}
-          <View style={styles.cardBody}>
-            <View style={styles.headerTitleRow}>
-              <Text style={styles.titleText} numberOfLines={2}>
-                {item.title}
-              </Text>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => removeSavedComparison(item.id)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={18} color="#94A3B8" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.dateText}>{item.createdDate}</Text>
-
-            {/* Open Comparison Button */}
-            <TouchableOpacity
-              style={styles.openButton}
-              onPress={() => handleOpenComparison(item)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.openButtonText}>Open Comparison</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      renderItem={renderItem}
+      getItemLayout={getItemLayout}
+      initialNumToRender={5}
+      maxToRenderPerBatch={5}
+      windowSize={4}
+      removeClippedSubviews={Platform.OS === 'android'}
     />
   );
 };

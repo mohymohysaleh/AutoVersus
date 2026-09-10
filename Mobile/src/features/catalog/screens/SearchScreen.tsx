@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -98,12 +98,31 @@ export const SearchScreen: React.FC = () => {
 
   const selectedBrandObject = brands.find((b) => b.slug.toLowerCase() === selectedBrandSlug?.toLowerCase());
 
-  const handleCarPress = (car: CarItem) => {
+  const handleCarPress = useCallback((car: CarItem) => {
     router.push({
       pathname: '/car/[slug]',
       params: { slug: car.slug },
     });
-  };
+  }, []);
+
+  const renderCarItem = useCallback(
+    ({ item }: { item: CarItem }) => (
+      <CarGridCard car={item} onPress={() => handleCarPress(item)} />
+    ),
+    [handleCarPress]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => {
+      const itemHeight = layoutMode === 'grid' ? 235 : 235;
+      return {
+        length: itemHeight,
+        offset: itemHeight * index,
+        index,
+      };
+    },
+    [layoutMode]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -263,10 +282,9 @@ export const SearchScreen: React.FC = () => {
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}
+          getItemLayout={getItemLayout}
           removeClippedSubviews={Platform.OS === 'android'}
-          renderItem={({ item }) => (
-            <CarGridCard car={item} onPress={() => handleCarPress(item)} />
-          )}
+          renderItem={renderCarItem}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="car-sport-outline" size={48} color="#9CA3AF" />

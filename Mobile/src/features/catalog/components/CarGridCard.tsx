@@ -12,7 +12,7 @@ interface CarGridCardProps {
   onPress?: () => void;
 }
 
-export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
+export const CarGridCard: React.FC<CarGridCardProps> = React.memo(({ car, onPress }) => {
   const { isAuthenticated } = useAuthStore();
   const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
 
@@ -99,7 +99,7 @@ export const CarGridCard: React.FC<CarGridCardProps> = ({ car, onPress }) => {
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: {

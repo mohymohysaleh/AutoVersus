@@ -9,7 +9,7 @@ interface HeroArticleCardProps {
   onPress?: () => void;
 }
 
-export const HeroArticleCard: React.FC<HeroArticleCardProps> = ({ article, onPress }) => {
+export const HeroArticleCard: React.FC<HeroArticleCardProps> = React.memo(({ article, onPress }) => {
   return (
     <TouchableOpacity
       style={styles.card}
@@ -44,7 +44,7 @@ export const HeroArticleCard: React.FC<HeroArticleCardProps> = ({ article, onPre
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: {

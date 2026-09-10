@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Image,
   StyleSheet,
+  Platform,
+  ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -105,6 +107,80 @@ const POPULAR_COMPARISONS: PopularComparisonItem[] = [
   },
 ];
 
+interface PopularComparisonCardProps {
+  item: PopularComparisonItem;
+  isAr: boolean;
+  onPress: (item: PopularComparisonItem) => void;
+}
+
+const PopularComparisonCard: React.FC<PopularComparisonCardProps> = React.memo(
+  ({ item, isAr, onPress }) => {
+    return (
+      <TouchableOpacity
+        testID={`home-comparison-card-${item.id}`}
+        accessibilityLabel={`Compare ${item.leftCar.name} vs ${item.rightCar.name}`}
+        style={styles.card}
+        onPress={() => onPress(item)}
+        activeOpacity={0.9}
+      >
+        {/* Top Tag Pill */}
+        <View style={styles.tagPill}>
+          <Ionicons name="flash-sharp" size={11} color="#C92A2A" style={{ marginRight: 4 }} />
+          <Text style={styles.tagPillText}>{item.badgeTag}</Text>
+        </View>
+
+        {/* Dual Car Visuals Grid */}
+        <View style={styles.dualCarRow}>
+          {/* Left Car */}
+          <View style={styles.singleCarCol}>
+            <View style={styles.carImageWrapper}>
+              <Image source={{ uri: item.leftCar.imageUrl }} style={styles.carImg} />
+              <View style={styles.hpBadge}>
+                <Text style={styles.hpBadgeText}>{item.leftCar.hp}</Text>
+              </View>
+            </View>
+            <Text style={styles.carName} numberOfLines={1}>
+              {item.leftCar.name}
+            </Text>
+            <Text style={styles.carTrim} numberOfLines={1}>
+              {item.leftCar.trim}
+            </Text>
+          </View>
+
+          {/* VS Badge Divider */}
+          <View style={styles.vsCircle}>
+            <Text style={styles.vsText}>VS</Text>
+          </View>
+
+          {/* Right Car */}
+          <View style={styles.singleCarCol}>
+            <View style={styles.carImageWrapper}>
+              <Image source={{ uri: item.rightCar.imageUrl }} style={styles.carImg} />
+              <View style={styles.hpBadge}>
+                <Text style={styles.hpBadgeText}>{item.rightCar.hp}</Text>
+              </View>
+            </View>
+            <Text style={styles.carName} numberOfLines={1}>
+              {item.rightCar.name}
+            </Text>
+            <Text style={styles.carTrim} numberOfLines={1}>
+              {item.rightCar.trim}
+            </Text>
+          </View>
+        </View>
+
+        {/* Bottom Action Button */}
+        <View style={styles.actionBtn}>
+          <Text style={styles.actionBtnText}>
+            {isAr ? 'مقارنة المواصفات الان' : 'Compare Specs'}
+          </Text>
+          <Ionicons name="arrow-forward" size={14} color="#0F2942" />
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
+
 interface PopularComparisonsListProps {
   onSeeAllPress?: () => void;
 }
@@ -115,15 +191,15 @@ export const PopularComparisonsList: React.FC<PopularComparisonsListProps> = ({
   const { language } = useLanguage();
   const isAr = language === 'AR';
 
-  const handleComparisonPress = (item: PopularComparisonItem) => {
+  const handleComparisonPress = useCallback((item: PopularComparisonItem) => {
     const slugs = `${item.leftCar.slug},${item.rightCar.slug}`;
     router.push({
       pathname: '/(tabs)/compare',
       params: { carSlugs: slugs, clear: 'false', reset: 'false', ts: Date.now().toString() },
     });
-  };
+  }, []);
 
-  const handleHeaderComparePress = () => {
+  const handleHeaderComparePress = useCallback(() => {
     if (onSeeAllPress) {
       onSeeAllPress();
     } else {
@@ -132,7 +208,27 @@ export const PopularComparisonsList: React.FC<PopularComparisonsListProps> = ({
         params: { clear: 'true', reset: 'true', carSlugs: '', ts: Date.now().toString() },
       });
     }
-  };
+  }, [onSeeAllPress]);
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<PopularComparisonItem>) => (
+      <PopularComparisonCard
+        item={item}
+        isAr={isAr}
+        onPress={handleComparisonPress}
+      />
+    ),
+    [isAr, handleComparisonPress]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 306,
+      offset: 306 * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <View nativeID="home-popular-comparisons-container" testID="home-popular-comparisons-container" style={styles.container}>
@@ -159,78 +255,21 @@ export const PopularComparisonsList: React.FC<PopularComparisonsListProps> = ({
       </View>
 
       {/* Horizontal Carousel List */}
-      <ScrollView
+      <FlatList
         nativeID="home-popular-comparisons-scrollview"
         testID="home-popular-comparisons-scrollview"
         horizontal
+        data={POPULAR_COMPARISONS}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >
-        {POPULAR_COMPARISONS.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            testID={`home-comparison-card-${item.id}`}
-            accessibilityLabel={`Compare ${item.leftCar.name} vs ${item.rightCar.name}`}
-            style={styles.card}
-            onPress={() => handleComparisonPress(item)}
-            activeOpacity={0.9}
-          >
-            {/* Top Tag Pill */}
-            <View style={styles.tagPill}>
-              <Ionicons name="flash-sharp" size={11} color="#C92A2A" style={{ marginRight: 4 }} />
-              <Text style={styles.tagPillText}>{item.badgeTag}</Text>
-            </View>
-
-            {/* Dual Car Visuals Grid */}
-            <View style={styles.dualCarRow}>
-              {/* Left Car */}
-              <View style={styles.singleCarCol}>
-                <View style={styles.carImageWrapper}>
-                  <Image source={{ uri: item.leftCar.imageUrl }} style={styles.carImg} />
-                  <View style={styles.hpBadge}>
-                    <Text style={styles.hpBadgeText}>{item.leftCar.hp}</Text>
-                  </View>
-                </View>
-                <Text style={styles.carName} numberOfLines={1}>
-                  {item.leftCar.name}
-                </Text>
-                <Text style={styles.carTrim} numberOfLines={1}>
-                  {item.leftCar.trim}
-                </Text>
-              </View>
-
-              {/* VS Badge Divider */}
-              <View style={styles.vsCircle}>
-                <Text style={styles.vsText}>VS</Text>
-              </View>
-
-              {/* Right Car */}
-              <View style={styles.singleCarCol}>
-                <View style={styles.carImageWrapper}>
-                  <Image source={{ uri: item.rightCar.imageUrl }} style={styles.carImg} />
-                  <View style={styles.hpBadge}>
-                    <Text style={styles.hpBadgeText}>{item.rightCar.hp}</Text>
-                  </View>
-                </View>
-                <Text style={styles.carName} numberOfLines={1}>
-                  {item.rightCar.name}
-                </Text>
-                <Text style={styles.carTrim} numberOfLines={1}>
-                  {item.rightCar.trim}
-                </Text>
-              </View>
-            </View>
-
-            {/* Bottom Action Button */}
-            <View style={styles.actionBtn}>
-              <Text style={styles.actionBtnText}>
-                {isAr ? 'مقارنة المواصفات الان' : 'Compare Specs'}
-              </Text>
-              <Ionicons name="arrow-forward" size={14} color="#0F2942" />
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === 'android'}
+      />
     </View>
   );
 };

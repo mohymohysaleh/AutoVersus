@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Image,
   StyleSheet,
   Alert,
+  Platform,
+  ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -34,6 +36,66 @@ const HOME_NEWS_ARTICLES: ShiftNewsArticle[] = [
   ...SHIFT_ARTICLES_LIST,
 ];
 
+interface LatestNewsCardProps {
+  rawArticle: ShiftNewsArticle;
+  language: 'EN' | 'AR';
+  isBookmarked: boolean;
+  onArticlePress?: (article: ShiftNewsArticle | NewsArticleCardItem) => void;
+  onToggleBookmark: (id: string) => void;
+}
+
+const LatestNewsCard: React.FC<LatestNewsCardProps> = React.memo(
+  ({ rawArticle, language, isBookmarked, onArticlePress, onToggleBookmark }) => {
+    const article = getLocalizedArticle(rawArticle, language);
+    const categoryText = (article.category || 'NEWS').toUpperCase();
+
+    return (
+      <TouchableOpacity
+        testID={`home-news-card-${article.id}`}
+        accessibilityLabel={`Read article ${article.title}`}
+        style={styles.card}
+        onPress={() => onArticlePress?.(article)}
+        activeOpacity={0.9}
+      >
+        {/* Cover Image Container */}
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: article.coverImage }} style={styles.articleImage} />
+
+          {/* Category Badge Pill */}
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{categoryText}</Text>
+          </View>
+
+          {/* Floating Bookmark Button */}
+          <TouchableOpacity
+            testID={`home-news-bookmark-${article.id}`}
+            accessibilityLabel={`Bookmark article ${article.title}`}
+            style={styles.bookmarkButton}
+            onPress={() => onToggleBookmark(article.id)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+              size={18}
+              color={isBookmarked ? '#C92A2A' : '#111827'}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Card Footer Info */}
+        <View style={styles.cardBody}>
+          <Text style={styles.articleTitle} numberOfLines={2}>
+            {article.title}
+          </Text>
+          <Text style={styles.metaText}>
+            {article.publishedDate} · {article.readTime}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
+
 interface LatestNewsListProps {
   onSeeAllPress?: () => void;
   onArticlePress?: (article: ShiftNewsArticle | NewsArticleCardItem) => void;
@@ -47,26 +109,54 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
   const { isAuthenticated } = useAuthStore();
   const [bookmarkedIds, setBookmarkedIds] = useState<Record<string, boolean>>({});
 
-  const toggleBookmark = (id: string) => {
-    if (!isAuthenticated) {
-      Alert.alert(
-        'Sign In Required',
-        'You need to sign in or create an account to save news articles.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Sign In',
-            onPress: () => router.push('/auth'),
-          },
-        ]
+  const toggleBookmark = useCallback(
+    (id: string) => {
+      if (!isAuthenticated) {
+        Alert.alert(
+          'Sign In Required',
+          'You need to sign in or create an account to save news articles.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Sign In',
+              onPress: () => router.push('/auth'),
+            },
+          ]
+        );
+        return;
+      }
+      setBookmarkedIds((prev) => ({
+        ...prev,
+        [id]: !prev[id],
+      }));
+    },
+    [isAuthenticated]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<ShiftNewsArticle>) => {
+      const isBookmarked = !!bookmarkedIds[item.id];
+      return (
+        <LatestNewsCard
+          rawArticle={item}
+          language={language}
+          isBookmarked={isBookmarked}
+          onArticlePress={onArticlePress}
+          onToggleBookmark={toggleBookmark}
+        />
       );
-      return;
-    }
-    setBookmarkedIds((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
+    },
+    [bookmarkedIds, language, onArticlePress, toggleBookmark]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 286,
+      offset: 286 * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <View nativeID="home-latest-news-container" testID="home-latest-news-container" style={styles.container}>
@@ -87,64 +177,21 @@ export const LatestNewsList: React.FC<LatestNewsListProps> = ({
       </View>
 
       {/* Horizontal Carousel List */}
-      <ScrollView
+      <FlatList
         nativeID="home-latest-news-scrollview"
         testID="home-latest-news-scrollview"
         horizontal
+        data={HOME_NEWS_ARTICLES}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >
-        {HOME_NEWS_ARTICLES.map((rawArticle) => {
-          const article = getLocalizedArticle(rawArticle, language);
-          const isBookmarked = !!bookmarkedIds[article.id];
-          const categoryText = (article.category || 'NEWS').toUpperCase();
-          return (
-            <TouchableOpacity
-              key={article.id}
-              testID={`home-news-card-${article.id}`}
-              accessibilityLabel={`Read article ${article.title}`}
-              style={styles.card}
-              onPress={() => onArticlePress?.(article)}
-              activeOpacity={0.9}
-            >
-              {/* Cover Image Container */}
-              <View style={styles.imageContainer}>
-                <Image source={{ uri: article.coverImage }} style={styles.articleImage} />
-
-                {/* Category Badge Pill */}
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{categoryText}</Text>
-                </View>
-
-                {/* Floating Bookmark Button */}
-                <TouchableOpacity
-                  testID={`home-news-bookmark-${article.id}`}
-                  accessibilityLabel={`Bookmark article ${article.title}`}
-                  style={styles.bookmarkButton}
-                  onPress={() => toggleBookmark(article.id)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons
-                    name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-                    size={18}
-                    color={isBookmarked ? '#C92A2A' : '#111827'}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Card Footer Info */}
-              <View style={styles.cardBody}>
-                <Text style={styles.articleTitle} numberOfLines={2}>
-                  {article.title}
-                </Text>
-                <Text style={styles.metaText}>
-                  {article.publishedDate} · {article.readTime}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === 'android'}
+      />
     </View>
   );
 };

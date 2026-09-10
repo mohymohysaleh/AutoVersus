@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Image,
   StyleSheet,
-  Alert,
+  Platform,
+  ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -117,6 +118,58 @@ const TRENDING_CARS: TrendingCarItem[] = [
   },
 ];
 
+interface TrendingCarCardProps {
+  car: TrendingCarItem;
+  onPress?: (car: TrendingCarItem) => void;
+  onToggleBookmark: (car: TrendingCarItem) => void;
+  isBookmarked: boolean;
+}
+
+const TrendingCarCard: React.FC<TrendingCarCardProps> = React.memo(
+  ({ car, onPress, onToggleBookmark, isBookmarked }) => {
+    return (
+      <TouchableOpacity
+        testID={`home-trending-car-card-${car.id}`}
+        accessibilityLabel={`View ${car.name} ${car.subTitle}`}
+        style={styles.card}
+        onPress={() => onPress?.(car)}
+        activeOpacity={0.9}
+      >
+        {/* Car Image Container */}
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: car.imageUrl }} style={styles.carImage} />
+
+          {/* Floating Bookmark Button */}
+          <TouchableOpacity
+            testID={`home-bookmark-button-${car.id}`}
+            accessibilityLabel={`Bookmark ${car.name}`}
+            style={styles.bookmarkButton}
+            onPress={() => onToggleBookmark(car)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+              size={18}
+              color={isBookmarked ? '#C92A2A' : '#111827'}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Card Footer Info */}
+        <View style={styles.cardBody}>
+          <Text style={styles.carName} numberOfLines={1}>
+            {car.name}
+          </Text>
+          <Text style={styles.subTitle} numberOfLines={1}>
+            {car.subTitle}
+          </Text>
+          <Text style={styles.priceText}>{car.price}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
+
 interface TrendingCarsListProps {
   onSeeAllPress?: () => void;
   onCarPress?: (car: TrendingCarItem) => void;
@@ -130,19 +183,46 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
   const { isAuthenticated } = useAuthStore();
   const { isVehicleSaved, toggleSavedVehicle } = useSavedStore();
 
-  const toggleBookmark = (car: TrendingCarItem) => {
-    if (!isAuthenticated) {
-      router.push('/(tabs)/profile');
-      return;
-    }
-    toggleSavedVehicle({
-      id: car.id,
-      name: `${car.name} ${car.subTitle}`,
-      price: car.price,
-      imageUrl: car.imageUrl,
-      slug: car.slug,
-    });
-  };
+  const toggleBookmark = useCallback(
+    (car: TrendingCarItem) => {
+      if (!isAuthenticated) {
+        router.push('/(tabs)/profile');
+        return;
+      }
+      toggleSavedVehicle({
+        id: car.id,
+        name: `${car.name} ${car.subTitle}`,
+        price: car.price,
+        imageUrl: car.imageUrl,
+        slug: car.slug,
+      });
+    },
+    [isAuthenticated, toggleSavedVehicle]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<TrendingCarItem>) => {
+      const isBookmarked = isVehicleSaved(item.id) || isVehicleSaved(item.slug);
+      return (
+        <TrendingCarCard
+          car={item}
+          onPress={onCarPress}
+          onToggleBookmark={toggleBookmark}
+          isBookmarked={isBookmarked}
+        />
+      );
+    },
+    [isVehicleSaved, onCarPress, toggleBookmark]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 266,
+      offset: 266 * index,
+      index,
+    }),
+    []
+  );
 
   return (
     <View nativeID="home-trending-cars-container" testID="home-trending-cars-container" style={styles.container}>
@@ -163,58 +243,21 @@ export const TrendingCarsList: React.FC<TrendingCarsListProps> = ({
       </View>
 
       {/* Horizontal Carousel List */}
-      <ScrollView
+      <FlatList
         nativeID="home-trending-cars-scrollview"
         testID="home-trending-cars-scrollview"
         horizontal
+        data={TRENDING_CARS}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-      >
-        {TRENDING_CARS.map((car) => {
-          const isBookmarked = isVehicleSaved(car.id) || isVehicleSaved(car.slug);
-          return (
-            <TouchableOpacity
-              key={car.id}
-              testID={`home-trending-car-card-${car.id}`}
-              accessibilityLabel={`View ${car.name} ${car.subTitle}`}
-              style={styles.card}
-              onPress={() => onCarPress?.(car)}
-              activeOpacity={0.9}
-            >
-              {/* Car Image Container */}
-              <View style={styles.imageContainer}>
-                <Image source={{ uri: car.imageUrl }} style={styles.carImage} />
-
-                {/* Floating Bookmark Button */}
-                <TouchableOpacity
-                  testID={`home-bookmark-button-${car.id}`}
-                  accessibilityLabel={`Bookmark ${car.name}`}
-                  style={styles.bookmarkButton}
-                  onPress={() => toggleBookmark(car)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons
-                    name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-                    size={18}
-                    color={isBookmarked ? '#C92A2A' : '#111827'}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Card Footer Info */}
-              <View style={styles.cardBody}>
-                <Text style={styles.carName} numberOfLines={1}>
-                  {car.name}
-                </Text>
-                <Text style={styles.subTitle} numberOfLines={1}>
-                  {car.subTitle}
-                </Text>
-                <Text style={styles.priceText}>{car.price}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === 'android'}
+      />
     </View>
   );
 };

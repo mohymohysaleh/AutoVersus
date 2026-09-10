@@ -1,20 +1,82 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Platform, ListRenderItemInfo } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSavedStore } from '../store/saved.store';
+import { SavedVehicle } from '../types/profile.types';
 import { OptimizedImage } from '../../../shared/components/OptimizedImage';
+
+interface SavedVehicleCardProps {
+  item: SavedVehicle;
+  onPress: (slug: string) => void;
+  onRemove: (id: string) => void;
+}
+
+const SavedVehicleCard: React.FC<SavedVehicleCardProps> = React.memo(({ item, onPress, onRemove }) => {
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress(item.slug)}
+      activeOpacity={0.9}
+    >
+      {/* Image */}
+      <View style={styles.imageContainer}>
+        <OptimizedImage uri={item.imageUrl} style={styles.image} contentFit="cover" />
+
+        {/* Filled Heart Button */}
+        <TouchableOpacity
+          style={styles.heartButton}
+          onPress={() => onRemove(item.id)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="heart" size={18} color="#C92A2A" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Details */}
+      <View style={styles.cardBody}>
+        <Text style={styles.carName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.priceText}>{item.price}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 export const SavedVehiclesTab: React.FC = () => {
   const savedVehicles = useSavedStore((state) => state.savedVehicles);
   const removeSavedVehicle = useSavedStore((state) => state.removeSavedVehicle);
 
-  const handleCardPress = (slug: string) => {
+  const handleCardPress = useCallback((slug: string) => {
     router.push({
       pathname: '/car/[slug]',
       params: { slug },
     });
-  };
+  }, []);
+
+  const handleRemoveVehicle = useCallback(
+    (id: string) => {
+      removeSavedVehicle(id);
+    },
+    [removeSavedVehicle]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<SavedVehicle>) => (
+      <SavedVehicleCard item={item} onPress={handleCardPress} onRemove={handleRemoveVehicle} />
+    ),
+    [handleCardPress, handleRemoveVehicle]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 200,
+      offset: 200 * index,
+      index,
+    }),
+    []
+  );
 
   if (savedVehicles.length === 0) {
     return (
@@ -45,35 +107,12 @@ export const SavedVehiclesTab: React.FC = () => {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.gridContent}
       columnWrapperStyle={styles.columnWrapper}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => handleCardPress(item.slug)}
-          activeOpacity={0.9}
-        >
-          {/* Image */}
-          <View style={styles.imageContainer}>
-            <OptimizedImage uri={item.imageUrl} style={styles.image} contentFit="cover" />
-
-            {/* Filled Heart Button */}
-            <TouchableOpacity
-              style={styles.heartButton}
-              onPress={() => removeSavedVehicle(item.id)}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="heart" size={18} color="#C92A2A" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Details */}
-          <View style={styles.cardBody}>
-            <Text style={styles.carName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.priceText}>{item.price}</Text>
-          </View>
-        </TouchableOpacity>
-      )}
+      renderItem={renderItem}
+      getItemLayout={getItemLayout}
+      initialNumToRender={8}
+      maxToRenderPerBatch={8}
+      windowSize={5}
+      removeClippedSubviews={Platform.OS === 'android'}
     />
   );
 };

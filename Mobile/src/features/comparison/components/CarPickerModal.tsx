@@ -1,19 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Modal,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   Image,
   StyleSheet,
   ActivityIndicator,
+  Platform,
+  ListRenderItemInfo,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ComparisonCar } from '../types/comparison.types';
 import { catalogApi } from '../../catalog/api/catalog.api';
 import { mapVariantToComparisonCar } from '../../../shared/utils/comparison-mapper';
+
+interface CarPickerItemProps {
+  car: ComparisonCar;
+  isAlreadySelected: boolean;
+  onSelectCar: (car: ComparisonCar) => void;
+  onClose: () => void;
+}
+
+const CarPickerItem: React.FC<CarPickerItemProps> = React.memo(
+  ({ car, isAlreadySelected, onSelectCar, onClose }) => {
+    return (
+      <TouchableOpacity
+        style={[styles.carItem, isAlreadySelected && styles.carItemDisabled]}
+        disabled={isAlreadySelected}
+        onPress={() => {
+          onSelectCar(car);
+          onClose();
+        }}
+        activeOpacity={0.8}
+      >
+        <Image source={{ uri: car.imageUrl }} style={styles.carThumb} resizeMode="cover" />
+        <View style={styles.infoCol}>
+          <Text style={styles.carTitle}>
+            {car.brandName} {car.modelName}
+          </Text>
+          <Text style={styles.carTrim}>
+            {car.year} • {car.trimName}
+          </Text>
+          <Text style={styles.priceText}>EGP {car.startingPriceEGP.toLocaleString()}</Text>
+        </View>
+
+        {isAlreadySelected ? (
+          <View style={styles.activeBadge}>
+            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            <Text style={styles.activeText}>In Matrix</Text>
+          </View>
+        ) : (
+          <View style={styles.selectBtn}>
+            <Text style={styles.selectBtnText}>Select</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }
+);
 
 interface CarPickerModalProps {
   visible: boolean;
@@ -76,6 +123,30 @@ export const CarPickerModal: React.FC<CarPickerModalProps> = ({
     );
   });
 
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<ComparisonCar>) => {
+      const isAlreadySelected = selectedCarIds.includes(item.id);
+      return (
+        <CarPickerItem
+          car={item}
+          isAlreadySelected={isAlreadySelected}
+          onSelectCar={onSelectCar}
+          onClose={onClose}
+        />
+      );
+    },
+    [selectedCarIds, onSelectCar, onClose]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 84,
+      offset: 84 * index,
+      index,
+    }),
+    []
+  );
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -113,50 +184,23 @@ export const CarPickerModal: React.FC<CarPickerModalProps> = ({
             </View>
           ) : (
             /* Car List */
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContainer}>
-              {filteredCars.map((car) => {
-                const isAlreadySelected = selectedCarIds.includes(car.id);
-                return (
-                  <TouchableOpacity
-                    key={car.id}
-                    style={[styles.carItem, isAlreadySelected && styles.carItemDisabled]}
-                    disabled={isAlreadySelected}
-                    onPress={() => {
-                      onSelectCar(car);
-                      onClose();
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={{ uri: car.imageUrl }} style={styles.carThumb} resizeMode="cover" />
-                    <View style={styles.infoCol}>
-                      <Text style={styles.carTitle}>
-                        {car.brandName} {car.modelName}
-                      </Text>
-                      <Text style={styles.carTrim}>
-                        {car.year} • {car.trimName}
-                      </Text>
-                      <Text style={styles.priceText}>EGP {car.startingPriceEGP.toLocaleString()}</Text>
-                    </View>
-
-                    {isAlreadySelected ? (
-                      <View style={styles.activeBadge}>
-                        <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                        <Text style={styles.activeText}>In Matrix</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.selectBtn}>
-                        <Text style={styles.selectBtnText}>Select</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-              {filteredCars.length === 0 && (
+            <FlatList
+              data={filteredCars}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              getItemLayout={getItemLayout}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContainer}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
+              ListEmptyComponent={
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyText}>No matching cars found in database.</Text>
                 </View>
-              )}
-            </ScrollView>
+              }
+            />
           )}
         </View>
       </View>

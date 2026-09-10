@@ -12,7 +12,7 @@ interface ArticleListItemProps {
   onPress?: () => void;
 }
 
-export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPress }) => {
+export const ArticleListItem: React.FC<ArticleListItemProps> = React.memo(({ article, onPress }) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { isAuthenticated } = useAuthStore();
 
@@ -80,7 +80,7 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = ({ article, onPre
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: {
