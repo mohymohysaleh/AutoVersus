@@ -1,9 +1,44 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { AuthController } from './auth.controller.js';
 import { authenticateJwt } from '../../../shared/presentation/middlewares/auth.middleware.js';
+import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
 
 const router = Router();
 const controller = new AuthController();
+
+// Validation Schemas
+const registerSchema = z.object({
+  email: z.string().email('Please provide a valid email address format.'),
+  password: z.string().min(8, 'Password must be at least 8 characters long.'),
+  name: z.string().optional(),
+  country: z.string().optional(),
+  preferredCurrency: z.string().optional(),
+  preferredLang: z.enum(['EN', 'AR']).optional(),
+  measurementSystem: z.enum(['METRIC', 'IMPERIAL']).optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().email('Please provide a valid email address format.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
+const refreshSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token is required.'),
+});
+
+const googleAuthSchema = z.object({
+  email: z.string().email('Valid email address is required.'),
+  name: z.string().optional(),
+  avatarUrl: z.string().optional().nullable(),
+  idToken: z.string().optional(),
+});
+
+const updatePreferencesSchema = z.object({
+  preferredCurrency: z.string().optional(),
+  preferredLang: z.enum(['EN', 'AR']).optional(),
+  measurementSystem: z.enum(['METRIC', 'IMPERIAL']).optional(),
+});
 
 /**
  * @openapi
@@ -53,7 +88,7 @@ const controller = new AuthController();
  *       409:
  *         description: Email already exists
  */
-router.post('/register', controller.register);
+router.post('/register', validateRequest({ body: registerSchema }), controller.register);
 
 /**
  * @openapi
@@ -84,7 +119,7 @@ router.post('/register', controller.register);
  *       401:
  *         description: Invalid email or password
  */
-router.post('/login', controller.login);
+router.post('/login', validateRequest({ body: loginSchema }), controller.login);
 
 /**
  * @openapi
@@ -110,7 +145,7 @@ router.post('/login', controller.login);
  *       401:
  *         description: Invalid or expired refresh token
  */
-router.post('/refresh', controller.refresh);
+router.post('/refresh', validateRequest({ body: refreshSchema }), controller.refresh);
 
 /**
  * @openapi
@@ -162,6 +197,8 @@ router.get('/me', authenticateJwt, controller.getMe);
  *       401:
  *         description: Unauthorized
  */
+router.patch('/preferences', authenticateJwt, validateRequest({ body: updatePreferencesSchema }), controller.updatePreferences);
+
 /**
  * @openapi
  * /api/v1/auth/google:
@@ -190,6 +227,6 @@ router.get('/me', authenticateJwt, controller.getMe);
  *       400:
  *         description: Invalid Google credentials
  */
-router.post('/google', controller.googleLogin);
+router.post('/google', validateRequest({ body: googleAuthSchema }), controller.googleLogin);
 
 export default router;

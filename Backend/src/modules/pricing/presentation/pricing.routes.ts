@@ -1,11 +1,34 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { PricingController } from './pricing.controller.js';
 import { authenticateJwt } from '../../../shared/presentation/middlewares/auth.middleware.js';
 import { requireRoles } from '../../../shared/presentation/middlewares/rbac.middleware.js';
+import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
 import { Role } from '@prisma/client';
 
 const router = Router();
 const controller = new PricingController();
+
+const priceHistoryParamsSchema = z.object({
+  variantId: z.string().min(1, 'Variant ID is required.'),
+});
+
+const recordPriceBodySchema = z.object({
+  variantId: z.string().min(1, 'Variant ID is required.'),
+  price: z.number().positive('Price must be greater than 0.'),
+  currency: z.string().optional(),
+  priceType: z.enum(['OFFICIAL_MSRP', 'DEALER_OVERPRICE', 'MARKET_AVERAGE', 'PROMOTIONAL']),
+  sourceName: z.string().optional(),
+});
+
+const createAlertBodySchema = z.object({
+  variantId: z.string().min(1, 'Variant ID is required.'),
+  targetPrice: z.number().positive('Target price must be greater than 0.'),
+});
+
+const alertIdParamsSchema = z.object({
+  id: z.string().min(1, 'Alert ID is required.'),
+});
 
 /**
  * @openapi
@@ -27,7 +50,7 @@ const controller = new PricingController();
  *       404:
  *         description: Vehicle variant not found
  */
-router.get('/history/:variantId', controller.getPriceHistory);
+router.get('/history/:variantId', validateRequest({ params: priceHistoryParamsSchema }), controller.getPriceHistory);
 
 /**
  * @openapi
@@ -76,6 +99,7 @@ router.post(
   '/record',
   authenticateJwt,
   requireRoles(Role.CONTENT_DATA_EDITOR, Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest({ body: recordPriceBodySchema }),
   controller.recordPrice
 );
 
@@ -109,7 +133,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post('/alerts', authenticateJwt, controller.createAlert);
+router.post('/alerts', authenticateJwt, validateRequest({ body: createAlertBodySchema }), controller.createAlert);
 
 /**
  * @openapi
@@ -153,6 +177,6 @@ router.get('/alerts', authenticateJwt, controller.getUserAlerts);
  *       404:
  *         description: Alert not found
  */
-router.delete('/alerts/:id', authenticateJwt, controller.deleteAlert);
+router.delete('/alerts/:id', authenticateJwt, validateRequest({ params: alertIdParamsSchema }), controller.deleteAlert);
 
 export default router;

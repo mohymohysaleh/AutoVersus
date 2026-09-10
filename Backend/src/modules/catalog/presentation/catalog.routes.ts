@@ -1,8 +1,24 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { CatalogController } from './catalog.controller.js';
+import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
 
 const router = Router();
 const controller = new CatalogController();
+
+const searchVehiclesQuerySchema = z.object({
+  brandSlug: z.string().optional(),
+  bodyType: z.string().optional(),
+  minPriceEGP: z.string().optional().transform((val) => (val ? Number(val) : undefined)),
+  maxPriceEGP: z.string().optional().transform((val) => (val ? Number(val) : undefined)),
+  page: z.string().optional().transform((val) => (val ? Number(val) : 1)),
+  limit: z.string().optional().transform((val) => (val ? Number(val) : 10)),
+  q: z.string().optional(),
+});
+
+const variantSlugParamsSchema = z.object({
+  slug: z.string().min(1, 'Variant slug is required.'),
+});
 
 /**
  * @openapi
@@ -84,7 +100,7 @@ router.get('/brands', controller.getBrands);
  *       200:
  *         description: Paginated search results of vehicle variants
  */
-router.get('/search', controller.searchVehicles);
+router.get('/search', validateRequest({ query: searchVehiclesQuerySchema }), controller.searchVehicles);
 
 /**
  * @openapi
@@ -106,6 +122,6 @@ router.get('/search', controller.searchVehicles);
  *       404:
  *         description: Vehicle variant not found
  */
-router.get('/variants/:slug', controller.getVariantBySlug);
+router.get('/variants/:slug', validateRequest({ params: variantSlugParamsSchema }), controller.getVariantBySlug);
 
 export default router;

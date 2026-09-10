@@ -1,11 +1,45 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { NewsController } from './news.controller.js';
 import { authenticateJwt } from '../../../shared/presentation/middlewares/auth.middleware.js';
 import { requireRoles } from '../../../shared/presentation/middlewares/rbac.middleware.js';
+import { validateRequest } from '../../../shared/presentation/middlewares/validation.middleware.js';
 import { Role } from '@prisma/client';
 
 const router = Router();
 const controller = new NewsController();
+
+const getArticlesQuerySchema = z.object({
+  category: z.string().optional(),
+  page: z.string().optional().transform((val) => (val ? Number(val) : 1)),
+  limit: z.string().optional().transform((val) => (val ? Number(val) : 10)),
+});
+
+const getArticleSlugParamsSchema = z.object({
+  slug: z.string().min(1, 'Slug is required.'),
+});
+
+const createArticleBodySchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters long.'),
+  summary: z.string().min(5, 'Summary is required.'),
+  contentHtml: z.string().min(10, 'Content HTML is required.'),
+  coverImage: z.string().optional().nullable(),
+  category: z.string().min(1, 'Category is required.'),
+  status: z.enum(['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED']).optional(),
+});
+
+const updateArticleBodySchema = z.object({
+  title: z.string().optional(),
+  summary: z.string().optional(),
+  contentHtml: z.string().optional(),
+  coverImage: z.string().optional().nullable(),
+  category: z.string().optional(),
+  status: z.enum(['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED']).optional(),
+});
+
+const articleIdParamsSchema = z.object({
+  id: z.string().min(1, 'Article ID is required.'),
+});
 
 /**
  * @openapi
@@ -34,7 +68,7 @@ const controller = new NewsController();
  *       200:
  *         description: List of published news articles
  */
-router.get('/', controller.getArticles);
+router.get('/', validateRequest({ query: getArticlesQuerySchema }), controller.getArticles);
 
 /**
  * @openapi
@@ -56,7 +90,7 @@ router.get('/', controller.getArticles);
  *       404:
  *         description: Article not found
  */
-router.get('/:slug', controller.getArticleBySlug);
+router.get('/:slug', validateRequest({ params: getArticleSlugParamsSchema }), controller.getArticleBySlug);
 
 /**
  * @openapi
@@ -110,6 +144,7 @@ router.post(
   '/',
   authenticateJwt,
   requireRoles(Role.NEWS_EDITOR, Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest({ body: createArticleBodySchema }),
   controller.createArticle
 );
 
@@ -156,6 +191,7 @@ router.put(
   '/:id',
   authenticateJwt,
   requireRoles(Role.NEWS_EDITOR, Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest({ params: articleIdParamsSchema, body: updateArticleBodySchema }),
   controller.updateArticle
 );
 
@@ -186,6 +222,7 @@ router.delete(
   '/:id',
   authenticateJwt,
   requireRoles(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest({ params: articleIdParamsSchema }),
   controller.deleteArticle
 );
 
