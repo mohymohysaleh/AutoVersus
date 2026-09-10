@@ -1,9 +1,14 @@
 import { create } from 'zustand';
 import { SavedVehicle, SavedComparisonItem } from '../types/profile.types';
+import { secureStorageService } from '../../../shared/services/secure-storage.service';
 
 interface SavedState {
   savedVehicles: SavedVehicle[];
   savedComparisons: SavedComparisonItem[];
+  activeUserId: string;
+
+  // Sync / Hydration
+  loadSavedForUser: (userId?: string | null) => Promise<void>;
 
   // Vehicle Actions
   addSavedVehicle: (vehicle: SavedVehicle) => void;
@@ -21,20 +26,64 @@ interface SavedState {
 export const useSavedStore = create<SavedState>((set, get) => ({
   savedVehicles: [],
   savedComparisons: [],
+  activeUserId: 'guest',
+
+  loadSavedForUser: async (userId?: string | null) => {
+    const targetKey = userId && userId.trim().length > 0 ? userId : 'guest';
+    
+    // Load persisted items for target user
+    let userVehicles = await secureStorageService.getUserSavedVehicles(targetKey);
+    let userComparisons = await secureStorageService.getUserSavedComparisons(targetKey);
+
+    // If user logged in, check if guest has items to merge
+    if (targetKey !== 'guest') {
+      const guestVehicles = await secureStorageService.getUserSavedVehicles('guest');
+      const guestComparisons = await secureStorageService.getUserSavedComparisons('guest');
+
+      if (guestVehicles.length > 0) {
+        guestVehicles.forEach((gv) => {
+          if (!userVehicles.some((uv) => uv.id === gv.id || uv.slug === gv.slug)) {
+            userVehicles = [gv, ...userVehicles];
+          }
+        });
+        await secureStorageService.saveUserSavedVehicles(targetKey, userVehicles);
+        await secureStorageService.saveUserSavedVehicles('guest', []);
+      }
+
+      if (guestComparisons.length > 0) {
+        guestComparisons.forEach((gc) => {
+          if (!userComparisons.some((uc) => uc.id === gc.id)) {
+            userComparisons = [gc, ...userComparisons];
+          }
+        });
+        await secureStorageService.saveUserSavedComparisons(targetKey, userComparisons);
+        await secureStorageService.saveUserSavedComparisons('guest', []);
+      }
+    }
+
+    set({
+      savedVehicles: userVehicles,
+      savedComparisons: userComparisons,
+      activeUserId: targetKey,
+    });
+  },
 
   addSavedVehicle: (vehicle: SavedVehicle) => {
-    const { savedVehicles } = get();
+    const { savedVehicles, activeUserId } = get();
     if (!savedVehicles.some((v) => v.id === vehicle.id || v.slug === vehicle.slug)) {
-      set({ savedVehicles: [vehicle, ...savedVehicles] });
+      const updated = [vehicle, ...savedVehicles];
+      set({ savedVehicles: updated });
+      secureStorageService.saveUserSavedVehicles(activeUserId, updated);
     }
   },
 
   removeSavedVehicle: (idOrSlug: string) => {
-    set((state) => ({
-      savedVehicles: state.savedVehicles.filter(
-        (v) => v.id !== idOrSlug && v.slug !== idOrSlug
-      ),
-    }));
+    const { savedVehicles, activeUserId } = get();
+    const updated = savedVehicles.filter(
+      (v) => v.id !== idOrSlug && v.slug !== idOrSlug
+    );
+    set({ savedVehicles: updated });
+    secureStorageService.saveUserSavedVehicles(activeUserId, updated);
   },
 
   isVehicleSaved: (idOrSlug: string) => {
@@ -57,16 +106,19 @@ export const useSavedStore = create<SavedState>((set, get) => ({
   },
 
   addSavedComparison: (comparison: SavedComparisonItem) => {
-    const { savedComparisons } = get();
+    const { savedComparisons, activeUserId } = get();
     if (!savedComparisons.some((c) => c.id === comparison.id)) {
-      set({ savedComparisons: [comparison, ...savedComparisons] });
+      const updated = [comparison, ...savedComparisons];
+      set({ savedComparisons: updated });
+      secureStorageService.saveUserSavedComparisons(activeUserId, updated);
     }
   },
 
   removeSavedComparison: (id: string) => {
-    set((state) => ({
-      savedComparisons: state.savedComparisons.filter((c) => c.id !== id),
-    }));
+    const { savedComparisons, activeUserId } = get();
+    const updated = savedComparisons.filter((c) => c.id !== id);
+    set({ savedComparisons: updated });
+    secureStorageService.saveUserSavedComparisons(activeUserId, updated);
   },
 
   isComparisonSaved: (id: string) => {

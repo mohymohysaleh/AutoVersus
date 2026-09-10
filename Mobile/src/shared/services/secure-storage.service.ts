@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { AuthTokens, UserProfile } from '../../features/identity/types/auth.types';
+import { SavedVehicle, SavedComparisonItem } from '../../features/profile/types/profile.types';
 
 const ACCESS_TOKEN_KEY = 'autoversus_sec_access_token';
 const REFRESH_TOKEN_KEY = 'autoversus_sec_refresh_token';
@@ -143,6 +144,114 @@ class SecureStorageService {
       console.warn('⚠️ EncryptedSharedPreferences error reading user profile:', error);
       return null;
     }
+  }
+
+  /**
+   * Save user saved vehicles to storage
+   */
+  async saveUserSavedVehicles(userId: string, vehicles: SavedVehicle[]): Promise<void> {
+    const key = `autoversus_sec_vehicles_${userId}`;
+    const jsonStr = JSON.stringify(vehicles);
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, jsonStr);
+      }
+      return;
+    }
+
+    try {
+      await SecureStore.setItemAsync(key, jsonStr, {
+        keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      });
+    } catch (error) {
+      console.warn('⚠️ EncryptedSharedPreferences error saving vehicles:', error);
+    }
+  }
+
+  /**
+   * Read user saved vehicles from storage
+   */
+  async getUserSavedVehicles(userId: string): Promise<SavedVehicle[]> {
+    const key = `autoversus_sec_vehicles_${userId}`;
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return [];
+          }
+        }
+      }
+      return [];
+    }
+
+    try {
+      const raw = await SecureStore.getItemAsync(key);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (error) {
+      console.warn('⚠️ EncryptedSharedPreferences error reading vehicles:', error);
+    }
+    return [];
+  }
+
+  /**
+   * Save user saved comparisons to storage
+   */
+  async saveUserSavedComparisons(userId: string, comparisons: SavedComparisonItem[]): Promise<void> {
+    const key = `autoversus_sec_comparisons_${userId}`;
+    const jsonStr = JSON.stringify(comparisons);
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, jsonStr);
+      }
+      return;
+    }
+
+    try {
+      await SecureStore.setItemAsync(key, jsonStr, {
+        keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      });
+    } catch (error) {
+      console.warn('⚠️ EncryptedSharedPreferences error saving comparisons:', error);
+    }
+  }
+
+  /**
+   * Read user saved comparisons from storage
+   */
+  async getUserSavedComparisons(userId: string): Promise<SavedComparisonItem[]> {
+    const key = `autoversus_sec_comparisons_${userId}`;
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return [];
+          }
+        }
+      }
+      return [];
+    }
+
+    try {
+      const raw = await SecureStore.getItemAsync(key);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (error) {
+      console.warn('⚠️ EncryptedSharedPreferences error reading comparisons:', error);
+    }
+    return [];
   }
 
   /**

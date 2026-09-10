@@ -8,6 +8,7 @@ import {
   GoogleAuthDto,
 } from '../types/auth.types';
 import { secureStorageService } from '../../../shared/services/secure-storage.service';
+import { useSavedStore } from '../../profile/store/saved.store';
 
 export const tokenStorage = {
   getAccessToken(): string | null {
@@ -61,6 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await tokenStorage.setTokens(data.tokens);
       const userProfile: UserProfile = { ...data.user, authProvider: 'LOCAL' };
       await secureStorageService.saveUserProfile(userProfile);
+      await useSavedStore.getState().loadSavedForUser(userProfile.id);
       set({
         user: userProfile,
         isAuthenticated: true,
@@ -84,6 +86,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await tokenStorage.setTokens(data.tokens);
       const userProfile: UserProfile = { ...data.user, authProvider: 'LOCAL' };
       await secureStorageService.saveUserProfile(userProfile);
+      await useSavedStore.getState().loadSavedForUser(userProfile.id);
       set({
         user: userProfile,
         isAuthenticated: true,
@@ -107,6 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await tokenStorage.setTokens(data.tokens);
       const userProfile: UserProfile = { ...data.user, authProvider: 'GOOGLE' };
       await secureStorageService.saveUserProfile(userProfile);
+      await useSavedStore.getState().loadSavedForUser(userProfile.id);
       set({
         user: userProfile,
         isAuthenticated: true,
@@ -125,6 +129,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await tokenStorage.clearTokens();
+    await useSavedStore.getState().loadSavedForUser('guest');
     set({
       user: null,
       isAuthenticated: false,
@@ -139,12 +144,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const cachedUser = await secureStorageService.getUserProfile();
 
     if (!token && !cachedUser) {
+      await useSavedStore.getState().loadSavedForUser('guest');
       set({ isLoading: false, isAuthenticated: false, user: null, isInitializing: false });
       return;
     }
 
     // Set cached user immediately for instant zero-latency UI session restoration
     if (cachedUser) {
+      await useSavedStore.getState().loadSavedForUser(cachedUser.id);
       set({ user: cachedUser, isAuthenticated: true, isLoading: false, isInitializing: false });
     } else {
       set({ isLoading: true });
@@ -158,6 +165,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const user = await authApi.getProfile();
       await secureStorageService.saveUserProfile(user);
+      await useSavedStore.getState().loadSavedForUser(user.id);
       set({
         user,
         isAuthenticated: true,
@@ -168,6 +176,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Only perform secure logout if profile fetch fails due to explicit 401 Unauthorized
       if (err?.status === 401 || err?.response?.status === 401) {
         await tokenStorage.clearTokens();
+        await useSavedStore.getState().loadSavedForUser('guest');
         set({
           user: null,
           isAuthenticated: false,
