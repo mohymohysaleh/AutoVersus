@@ -44,66 +44,89 @@ interface ExtractedSpec {
   combinedL100km: number;
 }
 
+const brandCache = new Map<string, any>();
+const modelCache = new Map<string, any>();
+const genCache = new Map<string, any>();
+const yearCache = new Map<string, any>();
+
 async function saveSpecToDatabase(spec: ExtractedSpec) {
   const brandSlug = spec.brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const modelSlug = spec.modelName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const trimSlug = `${spec.modelName}-${spec.trimName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-  // 1. Upsert Brand
-  const brand = await prisma.brand.upsert({
-    where: { slug: brandSlug },
-    update: { country: spec.brandCountry },
-    create: {
-      name: spec.brandName,
-      slug: brandSlug,
-      country: spec.brandCountry || 'Global',
-    },
-  });
+  // 1. Brand (cached)
+  let brand = brandCache.get(brandSlug);
+  if (!brand) {
+    brand = await prisma.brand.upsert({
+      where: { slug: brandSlug },
+      update: { country: spec.brandCountry },
+      create: {
+        name: spec.brandName,
+        slug: brandSlug,
+        country: spec.brandCountry || 'Global',
+      },
+    });
+    brandCache.set(brandSlug, brand);
+  }
 
-  // 2. Upsert CarModel
-  const carModel = await prisma.carModel.upsert({
-    where: { brandId_slug: { brandId: brand.id, slug: modelSlug } },
-    update: { bodyType: spec.bodyType },
-    create: {
-      brandId: brand.id,
-      name: spec.modelName,
-      slug: modelSlug,
-      bodyType: spec.bodyType,
-    },
-  });
+  // 2. CarModel (cached)
+  const modelKey = `${brand.id}:${modelSlug}`;
+  let carModel = modelCache.get(modelKey);
+  if (!carModel) {
+    carModel = await prisma.carModel.upsert({
+      where: { brandId_slug: { brandId: brand.id, slug: modelSlug } },
+      update: { bodyType: spec.bodyType },
+      create: {
+        brandId: brand.id,
+        name: spec.modelName,
+        slug: modelSlug,
+        bodyType: spec.bodyType,
+      },
+    });
+    modelCache.set(modelKey, carModel);
+  }
 
-  // 3. Find or Create Generation
-  let gen = await prisma.generation.findFirst({
-    where: { modelId: carModel.id, name: spec.genName },
-  });
-
+  // 3. Generation (cached)
+  const genKey = `${carModel.id}:${spec.genName}`;
+  let gen = genCache.get(genKey);
   if (!gen) {
-    gen = await prisma.generation.create({
-      data: {
-        modelId: carModel.id,
-        name: spec.genName,
-        startYear: spec.genStartYear || 2024,
-      },
+    gen = await prisma.generation.findFirst({
+      where: { modelId: carModel.id, name: spec.genName },
     });
+    if (!gen) {
+      gen = await prisma.generation.create({
+        data: {
+          modelId: carModel.id,
+          name: spec.genName,
+          startYear: spec.genStartYear || 2024,
+        },
+      });
+    }
+    genCache.set(genKey, gen);
   }
 
-  // 4. Find or Create ModelYear
-  let modelYear = await prisma.modelYear.findFirst({
-    where: { generationId: gen.id, year: spec.genStartYear || 2024 },
-  });
-
+  // 4. ModelYear (cached)
+  const yearKey = `${gen.id}:${spec.genStartYear || 2024}`;
+  let modelYear = yearCache.get(yearKey);
   if (!modelYear) {
-    modelYear = await prisma.modelYear.create({
-      data: {
-        generationId: gen.id,
-        year: spec.genStartYear || 2024,
-      },
+    modelYear = await prisma.modelYear.findFirst({
+      where: { generationId: gen.id, year: spec.genStartYear || 2024 },
     });
+    if (!modelYear) {
+      modelYear = await prisma.modelYear.create({
+        data: {
+          generationId: gen.id,
+          year: spec.genStartYear || 2024,
+        },
+      });
+    }
+    yearCache.set(yearKey, modelYear);
   }
 
-  // 5. Create or Update MarketVariant
+  // 5. Create or Replace MarketVariant (look up by slug to catch any existing variant across model years)
   const existingVariant = await prisma.marketVariant.findFirst({
-    where: { modelYearId: modelYear.id, slug: trimSlug, market: MarketCode.EG },
+    where: { slug: trimSlug },
+    select: { id: true },
   });
 
   if (existingVariant) {
@@ -290,38 +313,42 @@ async function main() {
       const isHybrid = trim.includes('Hybrid') || trim.includes('h') || trim.includes('e:HEV') || trim.includes('MHEV');
       const isEV = trim.includes('kWh') || trim.includes('EV') || trim.includes('Electric') || trim.includes('Recharge');
 
-      await saveSpecToDatabase({
-        brandName: entry.brand,
-        brandCountry: entry.country,
-        modelName: entry.model,
-        bodyType: entry.body,
-        genName: 'Current Gen Model Year',
-        genStartYear: 2024,
-        trimName: trim,
-        startingPriceEGP: entry.priceBase + (entry.trims.indexOf(trim) * 180000),
-        displacementCc: isEV ? undefined : entry.cc,
-        cylinders: isEV ? undefined : entry.cyl,
-        powerHp: entry.hp + (entry.trims.indexOf(trim) * 20),
-        powerKw: Math.round((entry.hp + (entry.trims.indexOf(trim) * 20)) * 0.7457),
-        torqueNm: Math.round((entry.hp + (entry.trims.indexOf(trim) * 20)) * 1.45),
-        fuelType: isEV ? FuelType.ELECTRIC : isHybrid ? FuelType.HYBRID : FuelType.PETROL,
-        transmission: isEV ? TransmissionType.SINGLE_SPEED_EV : trim.includes('CVT') ? TransmissionType.CVT : TransmissionType.AUTOMATIC,
-        drivetrain: (trim.includes('AWD') || trim.includes('4x4') || trim.includes('Quattro') || trim.includes('4MOTION') || trim.includes('4MATIC')) ? Drivetrain.AWD : Drivetrain.FWD,
-        lengthMm: entry.len,
-        widthMm: entry.wid,
-        heightMm: entry.hei,
-        wheelbaseMm: entry.wheel,
-        cargoCapacityL: entry.trunk,
-        seatingCapacity: entry.seats,
-        airbagsCount: entry.air,
-        hasAbs: true,
-        hasEsc: true,
-        hasAeb: entry.air >= 6,
-        zeroToHundredKmh: Number((entry.zero100 - (entry.trims.indexOf(trim) * 0.4)).toFixed(1)),
-        topSpeedKmh: entry.top + (entry.trims.indexOf(trim) * 5),
-        combinedL100km: isEV ? 0 : isHybrid ? 4.1 : entry.fuel,
-      });
-      totalCount++;
+      try {
+        await saveSpecToDatabase({
+          brandName: entry.brand,
+          brandCountry: entry.country,
+          modelName: entry.model,
+          bodyType: entry.body,
+          genName: 'Current Gen Model Year',
+          genStartYear: 2024,
+          trimName: trim,
+          startingPriceEGP: entry.priceBase + (entry.trims.indexOf(trim) * 180000),
+          displacementCc: isEV ? undefined : entry.cc,
+          cylinders: isEV ? undefined : entry.cyl,
+          powerHp: entry.hp + (entry.trims.indexOf(trim) * 20),
+          powerKw: Math.round((entry.hp + (entry.trims.indexOf(trim) * 20)) * 0.7457),
+          torqueNm: Math.round((entry.hp + (entry.trims.indexOf(trim) * 20)) * 1.45),
+          fuelType: isEV ? FuelType.ELECTRIC : isHybrid ? FuelType.HYBRID : FuelType.PETROL,
+          transmission: isEV ? TransmissionType.SINGLE_SPEED_EV : trim.includes('CVT') ? TransmissionType.CVT : TransmissionType.AUTOMATIC,
+          drivetrain: (trim.includes('AWD') || trim.includes('4x4') || trim.includes('Quattro') || trim.includes('4MOTION') || trim.includes('4MATIC')) ? Drivetrain.AWD : Drivetrain.FWD,
+          lengthMm: entry.len,
+          widthMm: entry.wid,
+          heightMm: entry.hei,
+          wheelbaseMm: entry.wheel,
+          cargoCapacityL: entry.trunk,
+          seatingCapacity: entry.seats,
+          airbagsCount: entry.air,
+          hasAbs: true,
+          hasEsc: true,
+          hasAeb: entry.air >= 6,
+          zeroToHundredKmh: Number((entry.zero100 - (entry.trims.indexOf(trim) * 0.4)).toFixed(1)),
+          topSpeedKmh: entry.top + (entry.trims.indexOf(trim) * 5),
+          combinedL100km: isEV ? 0 : isHybrid ? 4.1 : entry.fuel,
+        });
+        totalCount++;
+      } catch (err: any) {
+        console.error(`❌ Failed to seed ${entry.brand} ${entry.model} (${trim}):`, err.message || err);
+      }
     }
   }
 
