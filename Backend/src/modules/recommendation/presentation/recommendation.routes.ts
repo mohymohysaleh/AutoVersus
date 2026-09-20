@@ -22,9 +22,16 @@ const compareVehiclesBodySchema = z.object({
   userPrompt: z.string().optional(),
 });
 
+const chatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'system']),
+  content: z.string().min(1),
+});
+
 const chatWithAdvisorBodySchema = z.object({
-  userPrompt: z.string().min(1, 'Prompt is required.'),
-  carContext: z.array(carSpecSchema).optional(),
+  messages: z.array(chatMessageSchema).optional(),
+  userPrompt: z.string().optional(),
+  carsInComparison: z.array(z.any()).optional(),
+  carContext: z.array(z.any()).optional(),
 });
 
 /**

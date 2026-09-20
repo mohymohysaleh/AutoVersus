@@ -117,7 +117,7 @@ export const AuthScreen: React.FC = () => {
     try {
       // 1. Build standard OAuth redirect URI (matches scheme 'mobile' in app.json)
       const redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'mobile',
+        scheme: 'autoversus',
         preferLocalhost: true,
       });
 

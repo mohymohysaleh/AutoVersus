@@ -79,20 +79,31 @@ export class RecommendationController {
 
   public async chatWithAdvisor(req: Request, res: Response): Promise<void> {
     try {
-      const { messages, carsInComparison } = req.body;
+      const { messages, userPrompt, carsInComparison, carContext } = req.body;
 
-      if (!Array.isArray(messages) || messages.length === 0) {
+      let chatMessages = messages;
+      if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
+        if (typeof userPrompt === 'string' && userPrompt.trim().length > 0) {
+          chatMessages = [{ role: 'user', content: userPrompt.trim() }];
+        }
+      }
+
+      if (!Array.isArray(chatMessages) || chatMessages.length === 0) {
         res.status(400).json({
           error: {
-            message: 'Messages array with user question is required.',
+            message: 'Messages array or userPrompt question is required.',
           },
         });
         return;
       }
 
       const payload: ChatAdvisorPayload = {
-        messages,
-        carsInComparison: Array.isArray(carsInComparison) ? carsInComparison : [],
+        messages: chatMessages,
+        carsInComparison: Array.isArray(carsInComparison)
+          ? carsInComparison
+          : Array.isArray(carContext)
+          ? carContext
+          : [],
       };
 
       const reply = await chatWithAiAdvisor(payload);
