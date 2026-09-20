@@ -24,21 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <View nativeID="home-header-container" testID="home-header-container" style={styles.container}>
-      {/* Brand Logo - Pressing opens Onboarding Tour */}
-      <TouchableOpacity
-        testID="home-logo-button"
-        accessibilityLabel="AutoVersus Home Logo"
-        onPress={() => router.push('/onboarding')}
-        activeOpacity={0.8}
-      >
-        <Image
-          nativeID="home-logo-image"
-          testID="home-logo-image"
-          source={require('../../../../assets/images/avLogo-removebg-preview.png')}
-          style={styles.logo}
-          resizeMode="cover"
-        />
-      </TouchableOpacity>
+      {/* Brand Logo removed for testing updates */}
 
       {/* Right Action Icons */}
       <View nativeID="home-header-actions" testID="home-header-actions" style={styles.rightContainer}>
