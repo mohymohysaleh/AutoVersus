@@ -14,7 +14,10 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.2:5000/api"
+      }
     },
     "production": {
       "android": {
