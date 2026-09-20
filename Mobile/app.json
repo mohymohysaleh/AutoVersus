@@ -4,7 +4,7 @@
     "slug": "autoversus",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/avLogo-removebg-preview.png",
     "scheme": "autoversus",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -19,10 +19,8 @@
       "versionCode": 1,
       "usesCleartextTraffic": false,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/avLogo-removebg-preview.png"
       },
       "predictiveBackGestureEnabled": false
     },

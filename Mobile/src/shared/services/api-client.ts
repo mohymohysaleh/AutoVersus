@@ -3,10 +3,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { secureStorageService } from './secure-storage.service';
 
-// Dynamic host IP resolution for Expo Go / Emulators / Physical Devices on Wi-Fi
-const hostUri = Constants.expoConfig?.hostUri;
-const devHostIp = hostUri ? hostUri.split(':')[0] : '192.168.1.2';
-const DEFAULT_URL = `http://${devHostIp}:5000/api`;
+const DEFAULT_URL = 'https://auto-versus.vercel.app/api';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl || DEFAULT_URL;
 
