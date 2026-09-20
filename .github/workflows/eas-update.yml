@@ -33,7 +33,7 @@ jobs:
         working-directory: Mobile
 
       - name: 🚀 Publish update to EAS
-        run: eas update --auto --message "Automatic GitHub Actions OTA Update" --non-interactive
+        run: eas update --branch preview --message "Automatic GitHub Actions OTA Update" --non-interactive
         working-directory: Mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
